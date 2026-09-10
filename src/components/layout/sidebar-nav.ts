@@ -1,6 +1,21 @@
-import { LayoutDashboard, Users, Settings, Layers, type LucideIcon } from "lucide-react";
+﻿import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  Layers,
+  Newspaper,
+  GraduationCap,
+  Calendar,
+  FileCheck2,
+  type LucideIcon,
+} from "lucide-react";
 import { hasPermission, P } from "@/features/identity";
 import { SAMPLE_P } from "@/features/sample";
+import { NEWS_P } from "@/features/news";
+import { STAFF_P } from "@/features/staff";
+import { CURRICULUM_P } from "@/features/curriculum";
+import { RESERVATION_P } from "@/features/reservations";
+import { DOCUMENT_P } from "@/features/documents";
 
 export interface NavItem {
   /** i18n key */
@@ -11,26 +26,59 @@ export interface NavItem {
   permission?: string;
   children?: NavItem[];
 }
-export interface NavGroup { label: string; items: NavItem[] }
-export interface NavCrumb { title: string; href: string }
+export interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+export interface NavCrumb {
+  title: string;
+  href: string;
+}
 
 export const sidebarGroups: NavGroup[] = [
-  { label: "nav.group.overview", items: [{ title: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard }] },
+  {
+    label: "nav.group.overview",
+    items: [
+      { title: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "ระบบบริหารงานคณะ",
+    items: [
+      { title: "news.nav", href: "/news", icon: Newspaper, permission: NEWS_P.newsRead },
+      { title: "staff.nav", href: "/staff", icon: Users, permission: STAFF_P.staffRead },
+      { title: "curriculum.nav", href: "/curriculum", icon: GraduationCap, permission: CURRICULUM_P.curriculumRead },
+      { title: "reservation.nav", href: "/reservations", icon: Calendar, permission: RESERVATION_P.reservationRead },
+      { title: "document.nav", href: "/documents", icon: FileCheck2, permission: DOCUMENT_P.documentRead },
+    ],
+  },
   {
     label: "nav.group.sample",
-    items: [{ title: "sample.nav", href: "/sample", icon: Layers, permission: SAMPLE_P.sampleRead }],
+    items: [
+      { title: "sample.nav", href: "/sample", icon: Layers, permission: SAMPLE_P.sampleRead },
+    ],
   },
   {
     label: "nav.group.users",
-    items: [{
-      title: "nav.users", href: "/users", icon: Users, permission: P.usersRead,
-      children: [
-        { title: "nav.users", href: "/users", permission: P.usersRead },
-        { title: "nav.roles", href: "/users/roles", permission: P.rolesManage },
-      ],
-    }],
+    items: [
+      {
+        title: "nav.users",
+        href: "/users",
+        icon: Users,
+        permission: P.usersRead,
+        children: [
+          { title: "nav.users", href: "/users", permission: P.usersRead },
+          { title: "nav.roles", href: "/users/roles", permission: P.rolesManage },
+        ],
+      },
+    ],
   },
-  { label: "nav.group.settings", items: [{ title: "nav.settings", href: "/settings", icon: Settings, permission: P.settingsManage }] },
+  {
+    label: "nav.group.settings",
+    items: [
+      { title: "nav.settings", href: "/settings", icon: Settings, permission: P.settingsManage },
+    ],
+  },
 ];
 
 type Ctx = Parameters<typeof hasPermission>[0];
@@ -44,7 +92,12 @@ function visibleItem(item: NavItem, ctx: Ctx): NavItem | null {
 
 export function visibleGroups(ctx: Ctx): NavGroup[] {
   return sidebarGroups
-    .map((g) => ({ ...g, items: g.items.map((i) => visibleItem(i, ctx)).filter((i): i is NavItem => i !== null) }))
+    .map((g) => ({
+      ...g,
+      items: g.items
+        .map((i) => visibleItem(i, ctx))
+        .filter((i): i is NavItem => i !== null),
+    }))
     .filter((g) => g.items.length > 0);
 }
 
@@ -53,10 +106,17 @@ export function getActiveNavChain(pathname: string): NavCrumb[] {
   let best: { parent: NavItem | null; item: NavItem } | null = null;
   const consider = (item: NavItem, parent: NavItem | null) => {
     if (pathname === item.href || pathname.startsWith(item.href + "/")) {
-      if (!best || item.href.length > best.item.href.length || (item.href.length === best.item.href.length && parent)) best = { parent, item };
+      if (!best || item.href.length > best.item.href.length || (item.href.length === best.item.href.length && parent)) {
+        best = { parent, item };
+      }
     }
   };
-  for (const g of sidebarGroups) for (const i of g.items) { consider(i, null); for (const c of i.children ?? []) consider(c, i); }
+  for (const g of sidebarGroups) {
+    for (const i of g.items) {
+      consider(i, null);
+      for (const c of i.children ?? []) consider(c, i);
+    }
+  }
   if (!best) return [];
   const { parent, item } = best as { parent: NavItem | null; item: NavItem };
   const chain: NavCrumb[] = [];
