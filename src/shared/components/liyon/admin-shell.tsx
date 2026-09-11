@@ -114,13 +114,13 @@ export function AdminShell({
     <div className={cn("adm", collapsed && "narrow", drawerOpen && "drawer")}>
       <header className="adm-head">
         <Link className="brand-blk" href={brandHref}>
-          <i>
+          <i className={cn(brandLogoUrl && "bg-transparent border border-white/10 overflow-hidden")}>
             {brandLogoUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={brandLogoUrl}
                 alt={brandName}
-                className="w-full h-full object-contain rounded-inherit p-0.5"
+                className="w-full h-full object-contain p-0.5 rounded-sm"
               />
             ) : (
               <svg viewBox="0 0 24 24" aria-hidden="true">

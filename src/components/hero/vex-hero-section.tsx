@@ -7,12 +7,16 @@ interface VexHeroSectionProps {
   onExploreClick?: () => void;
   chatHref?: string;
   exploreHref?: string;
+  logoUrl?: string | null;
+  brandTitle?: string;
 }
 
 export function VexHeroSection({
   onExploreClick,
   chatHref = "/portal/curriculum",
   exploreHref = "#portal-content",
+  logoUrl,
+  brandTitle = "วิทยาลัยสงฆ์มหาสารคาม",
 }: VexHeroSectionProps) {
   return (
     <div className="relative w-full h-screen overflow-hidden text-white bg-black select-none font-sans">
@@ -35,11 +39,20 @@ export function VexHeroSection({
           <nav className="liquid-glass rounded-xl px-4 py-2.5 flex items-center justify-between">
             {/* Left: Logo */}
             <div className="flex items-center gap-3">
-              <span className="text-xl sm:text-2xl font-semibold tracking-tight text-white flex items-center gap-2">
-                <span className="h-7 w-7 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-sm font-bold">
-                  MCU
-                </span>
-                <span>วิทยาลัยสงฆ์มหาสารคาม</span>
+              <span className="text-xl sm:text-2xl font-semibold tracking-tight text-white flex items-center gap-2.5">
+                {logoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={logoUrl}
+                    alt={brandTitle}
+                    className="h-8 w-8 object-contain rounded-md bg-white/10 p-0.5"
+                  />
+                ) : (
+                  <span className="h-7 w-7 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-sm font-bold">
+                    MCU
+                  </span>
+                )}
+                <span>{brandTitle}</span>
               </span>
             </div>
 

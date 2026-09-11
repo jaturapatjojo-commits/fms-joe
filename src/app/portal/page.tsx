@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import {
   ArrowRight,
   BookOpen,
@@ -31,6 +31,8 @@ export default async function PortalHomePage() {
       <VexHeroSection
         chatHref="/portal/news"
         exploreHref="#portal-content"
+        logoUrl={tenant?.logoUrl}
+        brandTitle={tenant?.nameTh ?? "วิทยาลัยสงฆ์มหาสารคาม"}
       />
 
       <div id="portal-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 pt-6">

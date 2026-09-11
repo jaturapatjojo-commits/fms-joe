@@ -1,12 +1,17 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { GraduationCap } from "lucide-react";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { prisma } from "@/shared/lib/infra/prisma";
 
-export default function PortalLayout({
+export default async function PortalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const tenant = await prisma.tenant.findFirst();
+  const brandTitle = tenant?.nameTh ?? "วิทยาลัยสงฆ์มหาสารคาม";
+  const logoUrl = tenant?.logoUrl;
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
       {/* Main Content Body */}
@@ -17,9 +22,18 @@ export default function PortalLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-3">
-              <div className="flex items-center gap-2 font-bold text-base">
-                <GraduationCap className="h-5 w-5 text-primary" />
-                <span>คณะการจัดการและเทคโนโลยีสารสนเทศ</span>
+              <div className="flex items-center gap-2.5 font-bold text-base">
+                {logoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={logoUrl}
+                    alt={brandTitle}
+                    className="h-7 w-7 object-contain rounded-md"
+                  />
+                ) : (
+                  <GraduationCap className="h-6 w-6 text-primary" />
+                )}
+                <span>{brandTitle}</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 มุ่งผลิตบัณฑิตที่มีคุณธรรม เชี่ยวชาญเทคโนโลยี และพร้อมพัฒนาสังคมสู่อนาคตดิจิทัล
