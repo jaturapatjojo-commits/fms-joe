@@ -9,6 +9,7 @@ interface VexHeroSectionProps {
   exploreHref?: string;
   logoUrl?: string | null;
   brandTitle?: string;
+  showNavbar?: boolean;
 }
 
 export function VexHeroSection({
@@ -17,9 +18,10 @@ export function VexHeroSection({
   exploreHref = "#portal-content",
   logoUrl,
   brandTitle = "วิทยาลัยสงฆ์มหาสารคาม",
+  showNavbar = false,
 }: VexHeroSectionProps) {
   return (
-    <div className="relative w-full h-screen overflow-hidden text-white bg-black select-none font-sans">
+    <div className="relative w-full h-[85vh] min-h-[560px] overflow-hidden text-white bg-black select-none font-sans">
       {/* Full-screen Background Image with Smooth Cinematic Ken Burns Motion */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -34,45 +36,49 @@ export function VexHeroSection({
 
       {/* Main Container */}
       <div className="relative z-10 w-full h-full flex flex-col justify-between px-6 md:px-12 lg:px-16 pt-6 pb-12 lg:pb-16">
-        {/* Navbar inside Liquid Glass */}
-        <header className="w-full">
-          <nav className="liquid-glass rounded-xl px-4 py-2.5 flex items-center justify-between">
-            {/* Left: Logo */}
-            <div className="flex items-center gap-3">
-              <span className="text-xl sm:text-2xl font-semibold tracking-tight text-white flex items-center gap-2.5">
-                {logoUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={logoUrl}
-                    alt={brandTitle}
-                    className="h-8 w-8 object-contain rounded-md bg-white/10 p-0.5"
-                  />
-                ) : (
-                  <span className="h-7 w-7 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary-light text-sm font-bold text-white">
-                    MCU
-                  </span>
-                )}
-                <span>{brandTitle}</span>
-              </span>
-            </div>
+        {/* Navbar inside Liquid Glass (optional) */}
+        {showNavbar ? (
+          <header className="w-full">
+            <nav className="liquid-glass rounded-xl px-4 py-2.5 flex items-center justify-between">
+              {/* Left: Logo */}
+              <div className="flex items-center gap-3">
+                <span className="text-xl sm:text-2xl font-semibold tracking-tight text-white flex items-center gap-2.5">
+                  {logoUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={logoUrl}
+                      alt={brandTitle}
+                      className="h-8 w-8 object-contain rounded-md bg-white/10 p-0.5"
+                    />
+                  ) : (
+                    <span className="h-7 w-7 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary-light text-sm font-bold text-white">
+                      MCU
+                    </span>
+                  )}
+                  <span>{brandTitle}</span>
+                </span>
+              </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="text-xs sm:text-sm font-medium text-gray-200 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                เข้าสู่ระบบเจ้าหน้าที่
-              </Link>
-              <Link
-                href="/portal"
-                className="text-xs sm:text-sm font-medium bg-brand/80 hover:bg-brand text-on-brand px-3.5 py-1.5 rounded-lg transition-colors border border-brand-light/50 shadow-sm"
-              >
-                พอร์ทัลบริการ
-              </Link>
-            </div>
-          </nav>
-        </header>
+              {/* Right: Actions */}
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/login"
+                  className="text-xs sm:text-sm font-medium text-gray-200 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  เข้าสู่ระบบเจ้าหน้าที่
+                </Link>
+                <Link
+                  href="/portal"
+                  className="text-xs sm:text-sm font-medium bg-brand/80 hover:bg-brand text-on-brand px-3.5 py-1.5 rounded-lg transition-colors border border-brand-light/50 shadow-sm"
+                >
+                  พอร์ทัลบริการ
+                </Link>
+              </div>
+            </nav>
+          </header>
+        ) : (
+          <div />
+        )}
 
         {/* Content Area */}
         <div className="w-full">

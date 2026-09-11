@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { GraduationCap } from "lucide-react";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { PortalNavbar } from "@/components/layout/portal-navbar";
 import { prisma } from "@/shared/lib/infra/prisma";
 
 export default async function PortalLayout({
@@ -14,6 +15,9 @@ export default async function PortalLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
+      {/* Top Navbar matching Admin Header Theme */}
+      <PortalNavbar brandName={brandTitle} logoUrl={logoUrl} />
+
       {/* Main Content Body */}
       <main className="flex-1">{children}</main>
 

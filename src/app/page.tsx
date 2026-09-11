@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import {
   ArrowRight,
   BookOpen,
@@ -17,21 +17,33 @@ import { formatDate } from "@/shared/lib/format";
 import { getLocale } from "@/shared/lib/i18n/server";
 import { VexHeroSection } from "@/components/hero/vex-hero-section";
 
+import { PortalNavbar } from "@/components/layout/portal-navbar";
+import { GraduationCap } from "lucide-react";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+
 export default async function PortalHomePage() {
   const tenant = await prisma.tenant.findFirst();
   const locale = await getLocale();
+  const brandTitle = tenant?.nameTh ?? "วิทยาลัยสงฆ์มหาสารคาม";
+  const logoUrl = tenant?.logoUrl;
   const news = tenant ? await listPublicNewsArticles(tenant.id, { limit: 6 }) : [];
 
   const pinnedNews = news.filter((n) => n.isPinned);
   const regularNews = news.filter((n) => !n.isPinned);
 
   return (
-    <div className="space-y-16 pb-16">
-      {/* VEX Animated Video Background Hero Section */}
-      <VexHeroSection
-        chatHref="/portal/news"
-        exploreHref="#portal-content"
-      />
+    <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
+      {/* Top Navbar matching Admin Header Theme */}
+      <PortalNavbar brandName={brandTitle} logoUrl={logoUrl} />
+
+      <main className="flex-1 space-y-16 pb-16">
+        {/* VEX Animated Video Background Hero Section */}
+        <VexHeroSection
+          chatHref="/portal/news"
+          exploreHref="#portal-content"
+          logoUrl={logoUrl}
+          brandTitle={brandTitle}
+        />
 
       <div id="portal-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 pt-6">
         {/* Pinned News (Highlight Banner) */}
@@ -205,6 +217,92 @@ export default async function PortalHomePage() {
           </div>
         </section>
       </div>
-    </div>
+    </main>
+
+    {/* Footer */}
+    <footer className="border-t border-border bg-muted/30 mt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5 font-bold text-base">
+              {logoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={logoUrl}
+                  alt={brandTitle}
+                  className="h-7 w-7 object-contain rounded-md"
+                />
+              ) : (
+                <GraduationCap className="h-6 w-6 text-primary" />
+              )}
+              <span>{brandTitle}</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              มุ่งผลิตบัณฑิตที่มีคุณธรรม เชี่ยวชาญเทคโนโลยี และพร้อมพัฒนาสังคมสู่อนาคตดิจิทัล
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-sm mb-3">บริการข้อมูล</h3>
+            <ul className="space-y-2 text-xs text-muted-foreground">
+              <li>
+                <Link href="/portal/news" className="hover:underline">
+                  ข่าวสารและกิจกรรม
+                </Link>
+              </li>
+              <li>
+                <Link href="/portal/curriculum" className="hover:underline">
+                  หลักสูตรการศึกษา
+                </Link>
+              </li>
+              <li>
+                <Link href="/portal/staff" className="hover:underline">
+                  ทำเนียบคณาจารย์
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-sm mb-3">ระบบงานออนไลน์</h3>
+            <ul className="space-y-2 text-xs text-muted-foreground">
+              <li>
+                <Link href="/portal/reservations" className="hover:underline">
+                  ระบบจองห้องและยานพาหนะ
+                </Link>
+              </li>
+              <li>
+                <Link href="/portal/documents" className="hover:underline">
+                  ระบบสารบรรณและคำสั่งคณะ
+                </Link>
+              </li>
+              <li>
+                <Link href="/login" className="hover:underline">
+                  เข้าสู่ระบบเจ้าหน้าที่ (Admin)
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-sm mb-3">ติดต่อคณะ</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              79 หมู่ 1 ถนนพหลโยธิน ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา 13170<br />
+              โทรศัพท์: 035-248-000<br />
+              อีเมล: faculty@mcu.ac.th
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground">
+          <span>© 2026 Faculty of Management and Information Technology. All rights reserved.</span>
+          <div className="flex items-center gap-4 mt-2 sm:mt-0">
+            <LanguageSwitcher className="text-xs" />
+            <span>Powered by VibeCore Framework</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
   );
 }
