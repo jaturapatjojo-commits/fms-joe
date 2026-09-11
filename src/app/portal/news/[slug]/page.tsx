@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, Eye, Calendar, Share2, Pin } from "lucide-react";
+import { ArrowLeft, Clock, Eye, Pin } from "lucide-react";
 import { prisma } from "@/shared/lib/infra/prisma";
 import { getPublicNewsArticleBySlug } from "@/features/news/server";
 import { formatDate } from "@/shared/lib/format";

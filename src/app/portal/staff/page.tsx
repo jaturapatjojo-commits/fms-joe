@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Mail, Phone, MapPin, Building, GraduationCap } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin } from "lucide-react";
 import { prisma } from "@/shared/lib/infra/prisma";
 import { listPublicStaffMembers, listDepartments } from "@/features/staff/server";
 import { getLocale } from "@/shared/lib/i18n/server";

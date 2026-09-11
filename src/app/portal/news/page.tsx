@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Clock, Eye, Folder, Calendar } from "lucide-react";
+import { ArrowLeft, Clock, Eye } from "lucide-react";
 import { prisma } from "@/shared/lib/infra/prisma";
 import { listPublicNewsArticles, listNewsCategories } from "@/features/news/server";
 import { formatDate } from "@/shared/lib/format";

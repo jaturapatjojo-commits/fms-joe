@@ -263,7 +263,7 @@ async function main() {
     },
   });
 
-  const rRoom2 = await prisma.resource.upsert({
+  await await prisma.resource.upsert({
     where: { id: 'a0000000-0000-0000-0000-000000000201' },
     update: {},
     create: {
@@ -280,7 +280,7 @@ async function main() {
     },
   });
 
-  const rVan1 = await prisma.resource.upsert({
+  await await prisma.resource.upsert({
     where: { id: 'a0000000-0000-0000-0000-000000000301' },
     update: {},
     create: {
@@ -320,7 +320,7 @@ async function main() {
   const adminUser = await prisma.user.findFirstOrThrow({ where: { email: 'admin@app.local' } });
   const staffUser = await prisma.user.findFirstOrThrow({ where: { email: 'staff@app.local' } });
 
-  const doc1 = await prisma.document.upsert({
+  await await prisma.document.upsert({
     where: { tenantId_documentNo: { tenantId: core.tenantId, documentNo: 'ว 01/2569' } },
     update: {},
     create: {
@@ -336,7 +336,7 @@ async function main() {
     },
   });
 
-  const doc2 = await prisma.document.upsert({
+  await await prisma.document.upsert({
     where: { tenantId_documentNo: { tenantId: core.tenantId, documentNo: 'คำสั่ง 12/2569' } },
     update: {},
     create: {

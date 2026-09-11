@@ -321,7 +321,7 @@ export function DocumentsAdminClient({
               <LiyonField label={t("document.category")}>
                 <LiyonSelect
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as any)}
+                  onChange={(e) => setCategory(e.target.value as "MEMO" | "CIRCULAR" | "ORDER" | "PETITION" | "EXPENSE")}
                 >
                   <option value="MEMO">{t("document.category.memo")}</option>
                   <option value="CIRCULAR">{t("document.category.circular")}</option>
@@ -346,7 +346,7 @@ export function DocumentsAdminClient({
               <LiyonField label={t("document.urgency")}>
                 <LiyonSelect
                   value={urgency}
-                  onChange={(e) => setUrgency(e.target.value as any)}
+                  onChange={(e) => setUrgency(e.target.value as "NORMAL" | "URGENT" | "VERY_URGENT")}
                 >
                   <option value="NORMAL">{t("document.urgency.normal")}</option>
                   <option value="URGENT">{t("document.urgency.urgent")}</option>
@@ -494,7 +494,7 @@ export function DocumentsAdminClient({
           <LiyonField label="ผลการพิจารณา">
             <LiyonSelect
               value={approvalAction}
-              onChange={(e) => setApprovalAction(e.target.value as any)}
+              onChange={(e) => setApprovalAction(e.target.value as "APPROVED" | "REJECTED")}
             >
               <option value="APPROVED">ลงนามอนุมัติ (Approve)</option>
               <option value="REJECTED">ตีกลับแก้ไข / ไม่อนุมัติ (Reject)</option>

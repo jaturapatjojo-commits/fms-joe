@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, Award, FileDown, CheckCircle, ExternalLink } from "lucide-react";
+import { ArrowLeft, FileDown, CheckCircle, ExternalLink } from "lucide-react";
 import { prisma } from "@/shared/lib/infra/prisma";
 import { listPublicCurriculums } from "@/features/curriculum/server";
 import { getLocale } from "@/shared/lib/i18n/server";

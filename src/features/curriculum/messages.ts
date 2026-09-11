@@ -27,4 +27,7 @@ export const MESSAGES = {
   "curriculum.saveSuccess": { th: "บันทึกหลักสูตรสำเร็จ", en: "Curriculum saved successfully" },
   "curriculum.deleteSuccess": { th: "ลบหลักสูตรสำเร็จ", en: "Curriculum deleted successfully" },
   "curriculum.searchPlaceholder": { th: "ค้นหารหัส, ชื่อหลักสูตร...", en: "Search curriculum code, name..." },
-} as const;
+  "roles.module.curriculum": { th: "หลักสูตรการศึกษา", en: "Curriculum" },
+  "perm.curriculum:read": { th: "ดูข้อมูลหลักสูตร", en: "View curriculum" },
+  "perm.curriculum:manage": { th: "จัดการหลักสูตร", en: "Manage curriculum" },
+};

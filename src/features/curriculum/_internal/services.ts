@@ -17,7 +17,7 @@ export interface CurriculumDto {
   descriptionTh: string | null;
   descriptionEn: string | null;
   careerPaths: string[];
-  studyPlan: any[];
+  studyPlan: unknown[];
   syllabusFileUrl: string | null;
   isOpenAdmission: boolean;
   isActive: boolean;
@@ -70,7 +70,7 @@ export async function listAdminCurriculums(
     descriptionTh: c.descriptionTh,
     descriptionEn: c.descriptionEn,
     careerPaths: (c.careerPaths as string[]) ?? [],
-    studyPlan: (c.studyPlan as any[]) ?? [],
+    studyPlan: (c.studyPlan as unknown[]) ?? [],
     syllabusFileUrl: c.syllabusFileUrl,
     isOpenAdmission: c.isOpenAdmission,
     isActive: c.isActive,
@@ -115,7 +115,7 @@ export async function listPublicCurriculums(
     descriptionTh: c.descriptionTh,
     descriptionEn: c.descriptionEn,
     careerPaths: (c.careerPaths as string[]) ?? [],
-    studyPlan: (c.studyPlan as any[]) ?? [],
+    studyPlan: (c.studyPlan as unknown[]) ?? [],
     syllabusFileUrl: c.syllabusFileUrl,
     isOpenAdmission: c.isOpenAdmission,
     isActive: c.isActive,
@@ -151,7 +151,7 @@ export async function getCurriculumById(
     descriptionTh: c.descriptionTh,
     descriptionEn: c.descriptionEn,
     careerPaths: (c.careerPaths as string[]) ?? [],
-    studyPlan: (c.studyPlan as any[]) ?? [],
+    studyPlan: (c.studyPlan as unknown[]) ?? [],
     syllabusFileUrl: c.syllabusFileUrl,
     isOpenAdmission: c.isOpenAdmission,
     isActive: c.isActive,
@@ -204,7 +204,7 @@ export async function createCurriculum(
     descriptionTh: created.descriptionTh,
     descriptionEn: created.descriptionEn,
     careerPaths: (created.careerPaths as string[]) ?? [],
-    studyPlan: (created.studyPlan as any[]) ?? [],
+    studyPlan: (created.studyPlan as unknown[]) ?? [],
     syllabusFileUrl: created.syllabusFileUrl,
     isOpenAdmission: created.isOpenAdmission,
     isActive: created.isActive,
@@ -257,7 +257,7 @@ export async function updateCurriculum(
     descriptionTh: updated.descriptionTh,
     descriptionEn: updated.descriptionEn,
     careerPaths: (updated.careerPaths as string[]) ?? [],
-    studyPlan: (updated.studyPlan as any[]) ?? [],
+    studyPlan: (updated.studyPlan as unknown[]) ?? [],
     syllabusFileUrl: updated.syllabusFileUrl,
     isOpenAdmission: updated.isOpenAdmission,
     isActive: updated.isActive,

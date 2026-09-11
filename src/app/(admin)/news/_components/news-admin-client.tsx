@@ -376,7 +376,7 @@ export function NewsAdminClient({
               <LiyonField label={t("news.status")}>
                 <LiyonSelect
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
+                  onChange={(e) => setStatus(e.target.value as "DRAFT" | "PUBLISHED" | "ARCHIVED")}
                 >
                   <option value="DRAFT">{t("news.status.draft")}</option>
                   {canPublish && <option value="PUBLISHED">{t("news.status.published")}</option>}

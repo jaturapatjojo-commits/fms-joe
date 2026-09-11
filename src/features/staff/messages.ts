@@ -26,4 +26,7 @@ export const MESSAGES = {
   "staff.saveSuccess": { th: "บันทึกข้อมูลบุคลากรสำเร็จ", en: "Staff member saved successfully" },
   "staff.deleteSuccess": { th: "ลบข้อมูลบุคลากรสำเร็จ", en: "Staff member deleted successfully" },
   "staff.searchPlaceholder": { th: "ค้นหาชื่อ, ตำแหน่ง, สังกัด...", en: "Search name, position, department..." },
-} as const;
+  "roles.module.staff": { th: "ทำเนียบบุคลากร", en: "Staff Directory" },
+  "perm.staff:read": { th: "ดูข้อมูลบุคลากร", en: "View staff" },
+  "perm.staff:manage": { th: "จัดการข้อมูลบุคลากร", en: "Manage staff" },
+};

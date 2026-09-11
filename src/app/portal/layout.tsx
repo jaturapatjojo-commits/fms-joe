@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { Globe, LogIn, GraduationCap } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 
 export default function PortalLayout({

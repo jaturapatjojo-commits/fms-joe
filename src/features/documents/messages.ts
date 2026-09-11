@@ -27,4 +27,8 @@
   "document.saveSuccess": { th: "บันทึกร่างเอกสารสำเร็จ", en: "Document draft saved successfully" },
   "document.submitSuccess": { th: "ส่งเอกสารเข้าสายการอนุมัติแล้ว", en: "Submitted for approval" },
   "document.approveSuccess": { th: "บันทึกผลการพิจารณาลงนามแล้ว", en: "Approval decision recorded" },
-} as const;
+  "roles.module.document": { th: "ระบบสารบรรณ", en: "Correspondence System" },
+  "perm.document:read": { th: "ดูรายการเอกสารสารบรรณ", en: "View documents" },
+  "perm.document:manage": { th: "จัดการเอกสารสารบรรณ", en: "Manage documents" },
+  "perm.document:approve": { th: "ลงนามอนุมัติเอกสาร", en: "Approve documents" },
+};

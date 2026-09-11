@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { FileText, ArrowLeft, Download, ShieldCheck, Calendar, ExternalLink } from "lucide-react";
+import { FileText, ArrowLeft, Download, ShieldCheck, Calendar } from "lucide-react";
 import { getLocale } from "@/shared/lib/i18n/server";
 import { listPublicDocuments } from "@/features/documents/server";
 import { prisma } from "@/shared/lib/infra/prisma";

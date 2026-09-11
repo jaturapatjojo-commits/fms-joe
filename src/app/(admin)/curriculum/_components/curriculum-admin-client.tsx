@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Edit2, Trash2, Globe, GraduationCap, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Globe, GraduationCap, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useT, useLocale } from "@/shared/lib/i18n/client";
 import {
@@ -83,7 +83,7 @@ export function CurriculumAdminClient({
   const openEditDialog = (item: CurriculumDto) => {
     setEditingItem(item);
     setCode(item.code);
-    setDegreeLevel(item.degreeLevel as any);
+    setDegreeLevel(item.degreeLevel as "BACHELOR" | "MASTER" | "DOCTORAL");
     setNameTh(item.nameTh);
     setNameEn(item.nameEn);
     setDegreeTh(item.degreeTh);
@@ -303,7 +303,7 @@ export function CurriculumAdminClient({
               <LiyonField label={t("curriculum.degreeLevel")}>
                 <LiyonSelect
                   value={degreeLevel}
-                  onChange={(e) => setDegreeLevel(e.target.value as any)}
+                  onChange={(e) => setDegreeLevel(e.target.value as "BACHELOR" | "MASTER" | "DOCTORAL")}
                 >
                   <option value="BACHELOR">{t("curriculum.level.bachelor")}</option>
                   <option value="MASTER">{t("curriculum.level.master")}</option>

@@ -23,4 +23,8 @@ export const MESSAGES = {
   "reservation.empty": { th: "ยังไม่มีประวัติการจอง", en: "No reservations found" },
   "reservation.saveSuccess": { th: "ส่งคำขอจองเรียบร้อยแล้ว", en: "Reservation request submitted" },
   "reservation.approveSuccess": { th: "ดำเนินการพิจารณาคำขอเรียบร้อย", en: "Decision updated successfully" },
-} as const;
+  "roles.module.reservation": { th: "จองห้องและยานพาหนะ", en: "Reservations" },
+  "perm.reservation:read": { th: "ดูรายการจอง", en: "View reservations" },
+  "perm.reservation:manage": { th: "จัดการคำขอจอง", en: "Manage reservations" },
+  "perm.reservation:approve": { th: "อนุมัติคำขอจอง", en: "Approve reservations" },
+};

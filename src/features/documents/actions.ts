@@ -8,7 +8,6 @@ import { requirePermission } from "@/features/identity/server";
 import { DOCUMENT_P } from "./permissions";
 import {
   createDocumentSchema,
-  updateDocumentSchema,
   processApprovalSchema,
 } from "./_internal/validations";
 import {

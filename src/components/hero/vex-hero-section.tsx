@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { AnimatedHeading, FadeIn } from "./motion-components";
@@ -11,7 +11,7 @@ interface VexHeroSectionProps {
 
 export function VexHeroSection({
   onExploreClick,
-  chatHref = "/portal/news",
+  chatHref = "/portal/curriculum",
   exploreHref = "#portal-content",
 }: VexHeroSectionProps) {
   return (
@@ -37,66 +37,38 @@ export function VexHeroSection({
             <div className="flex items-center gap-3">
               <span className="text-xl sm:text-2xl font-semibold tracking-tight text-white flex items-center gap-2">
                 <span className="h-7 w-7 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-sm font-bold">
-                  MC
+                  MCU
                 </span>
-                MCU MSK
+                <span>วิทยาลัยสงฆ์มหาสารคาม</span>
               </span>
             </div>
 
-            {/* Center: Navigation Links (hidden on mobile, visible md+) */}
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <a
-                href="#portal-content"
-                className="text-white/90 hover:text-white transition-colors"
-              >
-                ข่าวสาร
-              </a>
-              <Link
-                href="/portal/curriculum"
-                className="text-white/90 hover:text-white transition-colors"
-              >
-                หลักสูตร
-              </Link>
-              <Link
-                href="/portal/staff"
-                className="text-white/90 hover:text-white transition-colors"
-              >
-                บุคลากร
-              </Link>
-              <Link
-                href="/portal/reservations"
-                className="text-white/90 hover:text-white transition-colors"
-              >
-                จองห้อง/ยานพาหนะ
-              </Link>
-              <Link
-                href="/portal/documents"
-                className="text-white/90 hover:text-white transition-colors"
-              >
-                สารบรรณ
-              </Link>
-            </div>
-
-            {/* Right: Action Button */}
-            <div className="flex items-center">
+            {/* Right: Actions */}
+            <div className="flex items-center gap-3">
               <Link
                 href="/login"
-                className="bg-white text-black px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors shadow-sm"
+                className="text-xs sm:text-sm font-medium text-gray-200 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
               >
-                เข้าสู่ระบบ
+                เข้าสู่ระบบเจ้าหน้าที่
+              </Link>
+              <Link
+                href="/portal"
+                className="text-xs sm:text-sm font-medium bg-amber-500/80 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-lg transition-colors border border-amber-400/50 shadow-sm"
+              >
+                พอร์ทัลบริการ
               </Link>
             </div>
           </nav>
         </header>
 
-        {/* Hero Content (Pushed to bottom of viewport) */}
-        <div className="flex-1 flex flex-col justify-end">
-          <div className="w-full lg:grid lg:grid-cols-2 lg:items-end gap-8">
-            {/* Left Column: Main Content */}
-            <div className="flex flex-col">
-              {/* Animated Heading with line break and char-by-char transition */}
+        {/* Content Area */}
+        <div className="w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-end">
+            {/* Left Column: Heading and Subheading */}
+            <div>
+              {/* Main Heading with Motion (30ms charDelay, 200ms initialDelay, 500ms duration) */}
               <AnimatedHeading
-                text={"อาคาร ๑๕๐ ปี\nจังหวัดมหาสารคาม"}
+                text="มหาจุฬาฯ มหาสารคาม"
                 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 text-white leading-tight drop-shadow-md"
                 charDelay={30}
                 initialDelay={200}
@@ -116,14 +88,14 @@ export function VexHeroSection({
               <FadeIn delay={1200} duration={1000}>
                 <div className="flex flex-wrap items-center gap-4">
                   <a
-                    href="#portal-content"
+                    href={exploreHref}
                     onClick={onExploreClick}
                     className="bg-white text-black px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-md"
                   >
                     สำรวจบริการออนไลน์
                   </a>
                   <Link
-                    href="/portal/curriculum"
+                    href={chatHref}
                     className="liquid-glass border border-white/20 text-white px-8 py-3 rounded-lg font-medium hover:bg-white hover:text-black transition-all"
                   >
                     หลักสูตรที่เปิดรับสมัคร

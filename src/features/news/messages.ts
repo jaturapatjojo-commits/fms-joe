@@ -35,4 +35,8 @@ export const MESSAGES = {
   "news.public.latest": { th: "ข่าวสารและกิจกรรมล่าสุด", en: "Latest News & Events" },
   "news.public.readMore": { th: "อ่านต่อ", en: "Read More" },
   "news.public.back": { th: "กลับหน้ารวมข่าว", en: "Back to News" },
-} as const;
+  "roles.module.news": { th: "ข่าวสารประชาสัมพันธ์", en: "News & Announcements" },
+  "perm.news:read": { th: "ดูข่าวประชาสัมพันธ์", en: "View news" },
+  "perm.news:manage": { th: "จัดการข่าวสาร", en: "Manage news" },
+  "perm.news:publish": { th: "เผยแพร่ข่าวสาร", en: "Publish news" },
+};

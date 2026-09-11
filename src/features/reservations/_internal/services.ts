@@ -1,7 +1,6 @@
 import { prisma } from "@/shared/lib/infra/prisma";
 import type {
   CreateResourceInput,
-  UpdateResourceInput,
   CreateReservationInput,
   ApproveReservationInput,
 } from "./validations";
