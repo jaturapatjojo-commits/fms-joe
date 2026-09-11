@@ -1,7 +1,9 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { AnimatedHeading, FadeIn } from "./motion-components";
+import { ArrowRight, PlayCircle, Sparkles } from "lucide-react";
+import { FadeIn } from "./motion-components";
+import { cn } from "@/shared/lib/utils";
 
 interface VexHeroSectionProps {
   onExploreClick?: () => void;
@@ -21,122 +23,123 @@ export function VexHeroSection({
   showNavbar = false,
 }: VexHeroSectionProps) {
   return (
-    <div className="relative w-full h-[85vh] min-h-[560px] overflow-hidden text-white bg-black select-none font-sans">
-      {/* Full-screen Background Image with Smooth Cinematic Ken Burns Motion */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/building.jpg"
-          alt="อาคาร ๑๕๐ ปี จังหวัดมหาสารคาม วิทยาลัยสงฆ์มหาสารคาม มจร"
-          className="w-full h-full object-cover animate-kenburns transform will-change-transform"
-        />
-        {/* Subtle cinematic gradient to enhance text contrast while preserving the true building colors */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/40 pointer-events-none" />
-      </div>
+    <section className="relative w-full min-h-[580px] lg:min-h-[640px] flex items-center overflow-hidden bg-[#fafafa] dark:bg-[#0c0d12] border-b border-border/50 transition-colors">
+      {/* Background Soft Glows & Ambient Highlights */}
+      <div className="absolute -top-32 right-10 w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[400px] h-[400px] bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[350px] h-[250px] bg-amber-400/10 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Main Container */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-between px-6 md:px-12 lg:px-16 pt-6 pb-12 lg:pb-16">
-        {/* Navbar inside Liquid Glass (optional) */}
-        {showNavbar ? (
-          <header className="w-full">
-            <nav className="liquid-glass rounded-xl px-4 py-2.5 flex items-center justify-between">
-              {/* Left: Logo */}
-              <div className="flex items-center gap-3">
-                <span className="text-xl sm:text-2xl font-semibold tracking-tight text-white flex items-center gap-2.5">
-                  {logoUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={logoUrl}
-                      alt={brandTitle}
-                      className="h-8 w-8 object-contain rounded-md bg-white/10 p-0.5"
-                    />
-                  ) : (
-                    <span className="h-7 w-7 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary-light text-sm font-bold text-white">
-                      MCU
-                    </span>
-                  )}
-                  <span>{brandTitle}</span>
+      <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 lg:px-12 py-12 lg:py-16 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+          {/* Left Column: Typography, Badge & CTAs (span 7) */}
+          <div className="lg:col-span-7 flex flex-col justify-center text-left space-y-6">
+            {/* Pill / Badge */}
+            <FadeIn delay={150} duration={600}>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/70 dark:border-purple-800/40 text-xs sm:text-sm font-medium w-fit shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-purple-600 dark:bg-purple-400 animate-pulse" />
+                <span>ศูนย์กลางการเรียนรู้และนวัตกรรมดิจิทัลแห่งอนาคต</span>
+              </div>
+            </FadeIn>
+
+            {/* Main Headline */}
+            <FadeIn delay={300} duration={700}>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50 leading-[1.15] sm:leading-[1.12]">
+                Learn. to code.
+                <br />
+                <span className="text-purple-600 dark:text-purple-400">
+                  Build the future.
                 </span>
-              </div>
+              </h1>
+            </FadeIn>
 
-              {/* Right: Actions */}
-              <div className="flex items-center gap-3">
+            {/* Subheading / Description */}
+            <FadeIn delay={450} duration={700}>
+              <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-xl leading-relaxed">
+                หลักสูตรและระบบการศึกษาแบบ Interactive เสริมสร้างทักษะดิจิทัล
+                สร้างสรรค์โครงงานจริง และเตรียมความพร้อมสู่โลกอนาคตอย่างมั่นใจ
+              </p>
+            </FadeIn>
+
+            {/* Call To Action Buttons */}
+            <FadeIn delay={600} duration={700}>
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                {/* Primary Button */}
                 <Link
-                  href="/login"
-                  className="text-xs sm:text-sm font-medium text-gray-200 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                  href={chatHref}
+                  className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-xl text-sm sm:text-base font-semibold text-white bg-purple-600 hover:bg-purple-700 active:bg-purple-800 transition-all shadow-md shadow-purple-600/25 hover:shadow-lg hover:shadow-purple-600/35 hover:-translate-y-0.5"
                 >
-                  เข้าสู่ระบบเจ้าหน้าที่
+                  <span>สำรวจหลักสูตร</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link
-                  href="/portal"
-                  className="text-xs sm:text-sm font-medium bg-brand/80 hover:bg-brand text-on-brand px-3.5 py-1.5 rounded-lg transition-colors border border-brand-light/50 shadow-sm"
+
+                {/* Secondary Button / Video Button */}
+                <a
+                  href={exploreHref}
+                  onClick={onExploreClick}
+                  className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-xl text-sm sm:text-base font-semibold text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/80 transition-all shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 hover:-translate-y-0.5"
                 >
-                  พอร์ทัลบริการ
-                </Link>
+                  <PlayCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <span>แนะนำวิทยาลัย</span>
+                </a>
               </div>
-            </nav>
-          </header>
-        ) : (
-          <div />
-        )}
+            </FadeIn>
 
-        {/* Content Area */}
-        <div className="w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-end">
-            {/* Left Column: Heading and Subheading */}
-            <div>
-              {/* Main Heading with Motion (30ms charDelay, 200ms initialDelay, 500ms duration) */}
-              <AnimatedHeading
-                text="มหาจุฬาฯ มหาสารคาม"
-                className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 text-white leading-tight drop-shadow-md"
-                charDelay={30}
-                initialDelay={200}
-                duration={500}
-              />
-
-              {/* Subheading with Fade-in (800ms delay, 1000ms duration) */}
-              <FadeIn delay={800} duration={1000}>
-                <p className="text-base md:text-lg text-gray-200 mb-6 font-normal max-w-xl leading-relaxed drop-shadow-sm">
-                  วิทยาลัยสงฆ์มหาสารคาม มหาวิทยาลัยมหาจุฬาลงกรณราชวิทยาลัย
-                  <br />
-                  ศูนย์กลางการจัดการศึกษา วิจัย และบริการวิชาการพระพุทธศาสนาสู่สังคม
-                </p>
-              </FadeIn>
-
-              {/* Buttons Row with Fade-in (1200ms delay, 1000ms duration) */}
-              <FadeIn delay={1200} duration={1000}>
-                <div className="flex flex-wrap items-center gap-4">
-                  <a
-                    href={exploreHref}
-                    onClick={onExploreClick}
-                    className="bg-white text-black px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-md"
-                  >
-                    สำรวจบริการออนไลน์
-                  </a>
-                  <Link
-                    href={chatHref}
-                    className="liquid-glass border border-white/20 text-white px-8 py-3 rounded-lg font-medium hover:bg-white hover:text-black transition-all"
-                  >
-                    หลักสูตรที่เปิดรับสมัคร
-                  </Link>
-                </div>
-              </FadeIn>
-            </div>
-
-            {/* Right Column: Tag aligned to bottom-right */}
-            <div className="mt-8 lg:mt-0 flex items-end justify-start lg:justify-end">
-              {/* Glass Tag with Fade-in (1400ms delay, 1000ms duration) */}
-              <FadeIn delay={1400} duration={1000}>
-                <div className="liquid-glass border border-white/20 px-6 py-3.5 rounded-xl inline-block shadow-lg">
-                  <span className="text-base md:text-lg lg:text-xl font-light text-white tracking-wide">
-                    พุทธศาสตร์ • การศึกษา • นวัตกรรมดิจิทัล
+            {/* Quick Stats / Highlights */}
+            <FadeIn delay={750} duration={700}>
+              <div className="pt-4 flex items-center gap-6 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 border-t border-border/40 max-w-md">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-neutral-900 dark:text-neutral-100 text-base">
+                    100%
                   </span>
+                  <span>ทักษะปฏิบัติจริง</span>
                 </div>
-              </FadeIn>
-            </div>
+                <span className="text-border">•</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-neutral-900 dark:text-neutral-100 text-base">
+                    24/7
+                  </span>
+                  <span>ระบบบริการออนไลน์</span>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* Right Column: 3D Character Illustration with Smooth Animation (span 5) */}
+          <div className="lg:col-span-5 flex items-center justify-center relative">
+            <FadeIn delay={400} duration={800}>
+              <div className="relative w-full max-w-[420px] sm:max-w-[460px] lg:max-w-none flex items-center justify-center">
+                {/* Visual Backdrop Halo Glow */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-500/20 via-primary/10 to-amber-400/20 blur-2xl transform scale-90 -z-10" />
+
+                {/* Main 3D Boy with Laptop Animation */}
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-purple-900/10 border border-black/5 dark:border-white/10 bg-gradient-to-b from-neutral-100/50 to-neutral-200/50 dark:from-neutral-900/50 dark:to-neutral-950/50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/codeyoung-character-clean.webp"
+                    alt="Young coder building the future on laptop with headphones"
+                    className="w-full h-auto object-cover max-h-[500px] select-none pointer-events-none transition-transform duration-500 hover:scale-[1.02]"
+                  />
+                </div>
+
+                {/* Floating Floating Accent Badge (Card) */}
+                <div className="absolute -bottom-4 -left-4 sm:bottom-4 sm:-left-6 liquid-glass bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-neutral-200/70 dark:border-neutral-800 shadow-xl flex items-center gap-3 animate-bounce [animation-duration:4s]">
+                  <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 leading-none">
+                      Interactive Coding
+                    </p>
+                    <p className="text-xs font-bold text-neutral-900 dark:text-neutral-100 mt-0.5">
+                      Kids & Teens Courses
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
