@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { signOut } from "next-auth/react";
+import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
+import { LayoutDashboard, User, LogOut, Settings } from "lucide-react";
 import { LanguageSwitcher } from "./language-switcher";
+import { useAppSession } from "@/hooks/use-session";
+import { hasPermission, P } from "@/features/identity";
 import { cn } from "@/shared/lib/utils";
 
 interface PortalNavbarProps {
@@ -19,6 +24,10 @@ export function PortalNavbar({
   className,
 }: PortalNavbarProps) {
   const { theme, setTheme } = useTheme();
+  const { user, status, isAuthenticated, roles, permissions, isSuperAdmin } = useAppSession();
+
+  const ctx = { roles, permissions, isSuperAdmin };
+  const initials = (user?.name ?? "?").trim().charAt(0).toUpperCase() || "?";
 
   return (
     <header
@@ -72,7 +81,7 @@ export function PortalNavbar({
         </Link>
       </nav>
 
-      {/* Actions (Theme toggle, Language switcher, Login button) */}
+      {/* Actions (Theme toggle, Language switcher, Account / Login) */}
       <div className="flex items-center gap-2 shrink-0">
         <button
           type="button"
@@ -91,12 +100,99 @@ export function PortalNavbar({
 
         <LanguageSwitcher />
 
-        <Link
-          href="/login"
-          className="ml-2 text-xs font-semibold px-3.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs whitespace-nowrap"
-        >
-          เข้าสู่ระบบเจ้าหน้าที่
-        </Link>
+        {status === "loading" ? (
+          <div aria-hidden="true" className="h-9 w-9 animate-pulse rounded-full bg-muted ml-2" />
+        ) : isAuthenticated && user ? (
+          <div className="acct ml-2">
+            <DropdownMenuPrimitive.Root>
+              <DropdownMenuPrimitive.Trigger asChild>
+                <button type="button" className="flex items-center gap-2 p-1 pl-1 pr-2.5 rounded-full hover:bg-muted/60 transition-colors">
+                  <span className="who w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white bg-primary shrink-0" aria-hidden="true">
+                    {user.image ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={user.image} alt="" className="h-full w-full rounded-full object-cover" />
+                    ) : (
+                      initials
+                    )}
+                  </span>
+                  <span className="nm text-xs font-medium text-foreground max-w-[120px] truncate hidden sm:inline-block">
+                    {user.name}
+                  </span>
+                  <svg className="chev w-3.5 h-3.5 text-muted-foreground" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </DropdownMenuPrimitive.Trigger>
+              <DropdownMenuPrimitive.Portal>
+                <DropdownMenuPrimitive.Content
+                  className="menu-list bg-popover text-popover-foreground border border-border shadow-lg rounded-xl p-1 min-w-[200px] z-50 animate-in fade-in-80 zoom-in-95"
+                  align="end"
+                  sideOffset={8}
+                  style={{ position: "static" }}
+                >
+                  <DropdownMenuPrimitive.Label asChild>
+                    <div className="px-3 py-2 border-b border-border/50">
+                      <p className="text-sm font-bold text-foreground">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                  </DropdownMenuPrimitive.Label>
+
+                  <DropdownMenuPrimitive.Item asChild>
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                    >
+                      <LayoutDashboard className="h-4 w-4 text-primary" />
+                      แผงควบคุมระบบ (Admin Console)
+                    </Link>
+                  </DropdownMenuPrimitive.Item>
+
+                  <DropdownMenuPrimitive.Item asChild>
+                    <Link
+                      href="/me"
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                    >
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      ข้อมูลส่วนตัว
+                    </Link>
+                  </DropdownMenuPrimitive.Item>
+
+                  {hasPermission(ctx, P.settingsManage) && (
+                    <DropdownMenuPrimitive.Item asChild>
+                      <Link
+                        href="/settings"
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-foreground rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                      >
+                        <Settings className="h-4 w-4 text-muted-foreground" />
+                        ตั้งค่าระบบ
+                      </Link>
+                    </DropdownMenuPrimitive.Item>
+                  )}
+
+                  <DropdownMenuPrimitive.Separator className="h-px bg-border/50 my-1" />
+
+                  <DropdownMenuPrimitive.Item asChild>
+                    <button
+                      type="button"
+                      onClick={() => signOut({ callbackUrl: "/portal" })}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      ออกจากระบบ
+                    </button>
+                  </DropdownMenuPrimitive.Item>
+                </DropdownMenuPrimitive.Content>
+              </DropdownMenuPrimitive.Portal>
+            </DropdownMenuPrimitive.Root>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="ml-2 text-xs font-semibold px-3.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs whitespace-nowrap"
+          >
+            เข้าสู่ระบบเจ้าหน้าที่
+          </Link>
+        )}
       </div>
     </header>
   );
