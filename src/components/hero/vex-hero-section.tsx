@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { ArrowRight, PlayCircle, Sparkles } from "lucide-react";
+import { ArrowRight, PlayCircle } from "lucide-react";
 import { FadeIn } from "./motion-components";
+import { MonkStudentUniverseAnimation } from "./monk-student-universe-animation";
 import { cn } from "@/shared/lib/utils";
 
 interface VexHeroSectionProps {
@@ -104,38 +105,10 @@ export function VexHeroSection({
             </FadeIn>
           </div>
 
-          {/* Right Column: 3D Character Illustration with Smooth Animation (span 5) */}
+          {/* Right Column: Monk & University Student in Universe Animation (span 5) */}
           <div className="lg:col-span-5 flex items-center justify-center relative">
             <FadeIn delay={400} duration={800}>
-              <div className="relative w-full max-w-[420px] sm:max-w-[460px] lg:max-w-none flex items-center justify-center">
-                {/* Visual Backdrop Halo Glow */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-500/20 via-primary/10 to-amber-400/20 blur-2xl transform scale-90 -z-10" />
-
-                {/* Main 3D Boy with Laptop Animation */}
-                <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-purple-900/10 border border-black/5 dark:border-white/10 bg-gradient-to-b from-neutral-100/50 to-neutral-200/50 dark:from-neutral-900/50 dark:to-neutral-950/50">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/codeyoung-character-clean.webp"
-                    alt="Young coder building the future on laptop with headphones"
-                    className="w-full h-auto object-cover max-h-[500px] select-none pointer-events-none transition-transform duration-500 hover:scale-[1.02]"
-                  />
-                </div>
-
-                {/* Floating Floating Accent Badge (Card) */}
-                <div className="absolute -bottom-4 -left-4 sm:bottom-4 sm:-left-6 liquid-glass bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-neutral-200/70 dark:border-neutral-800 shadow-xl flex items-center gap-3 animate-bounce [animation-duration:4s]">
-                  <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 leading-none">
-                      Interactive Coding
-                    </p>
-                    <p className="text-xs font-bold text-neutral-900 dark:text-neutral-100 mt-0.5">
-                      Kids & Teens Courses
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <MonkStudentUniverseAnimation />
             </FadeIn>
           </div>
         </div>
