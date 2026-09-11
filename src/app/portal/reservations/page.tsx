@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Calendar, Clock, MapPin, Users, ArrowLeft, Car, DoorOpen, ShieldCheck } from "lucide-react";
 import { getLocale } from "@/shared/lib/i18n/server";
 import { listResources, listPublicSchedule } from "@/features/reservations/server";
@@ -27,11 +27,11 @@ export default async function PortalReservationsPage() {
   return (
     <div className="min-h-screen bg-background pb-16">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white py-12 px-4 sm:px-6 lg:px-8 shadow-inner">
+      <div className="bg-gradient-to-r from-brand-deep via-brand to-brand-light text-on-brand py-12 px-4 sm:px-6 lg:px-8 shadow-inner">
         <div className="max-w-6xl mx-auto">
           <Link
             href="/portal"
-            className="inline-flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium mb-6 transition-colors bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm"
+            className="inline-flex items-center gap-1.5 text-white/85 hover:text-white text-sm font-medium mb-6 transition-colors bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-sm"
           >
             <ArrowLeft className="h-4 w-4" />
             {locale === "th" ? "กลับสู่หน้าหลักพอร์ทัล" : "Back to Portal"}
@@ -52,9 +52,9 @@ export default async function PortalReservationsPage() {
             </div>
             <Link
               href="/reservations"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-amber-700 font-semibold text-sm shadow-md hover:bg-white/90 transition-all shrink-0"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-brand font-semibold text-sm shadow-md hover:bg-white/95 transition-all shrink-0"
             >
-              <ShieldCheck className="h-4 w-4" />
+              <ShieldCheck className="h-4 w-4 text-brand" />
               {locale === "th" ? "เข้าสู่ระบบเพื่อจอง" : "Log in to Book"}
             </Link>
           </div>

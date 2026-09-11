@@ -48,7 +48,7 @@ export function VexHeroSection({
                     className="h-8 w-8 object-contain rounded-md bg-white/10 p-0.5"
                   />
                 ) : (
-                  <span className="h-7 w-7 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-sm font-bold">
+                  <span className="h-7 w-7 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary-light text-sm font-bold text-white">
                     MCU
                   </span>
                 )}
@@ -66,7 +66,7 @@ export function VexHeroSection({
               </Link>
               <Link
                 href="/portal"
-                className="text-xs sm:text-sm font-medium bg-amber-500/80 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-lg transition-colors border border-amber-400/50 shadow-sm"
+                className="text-xs sm:text-sm font-medium bg-brand/80 hover:bg-brand text-on-brand px-3.5 py-1.5 rounded-lg transition-colors border border-brand-light/50 shadow-sm"
               >
                 พอร์ทัลบริการ
               </Link>
