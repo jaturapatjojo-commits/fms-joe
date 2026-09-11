@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Sparkles, Atom, Orbit, Laptop, BookOpen } from "lucide-react";
+import { Atom } from "lucide-react";
 
 export function MonkStudentUniverseAnimation() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

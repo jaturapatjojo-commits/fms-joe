@@ -2,35 +2,92 @@ import { cache } from "react";
 import { prisma, type Db } from "@/shared/lib/infra/prisma";
 import { DEFAULT_PALETTE, isPalette, type PaletteId } from "@/shared/lib/palette";
 import { errors } from "@/shared/lib/errors";
+import type { Prisma } from "@/generated/prisma";
 import { writeAudit } from "../audit";
 import type { UpdateSettingsInput } from "../validations/settings";
 
-export interface TenantSettings { code: string; nameTh: string; nameEn: string; logoUrl: string | null; palette: PaletteId }
+export interface TenantSmtpSettings {
+  enabled: boolean;
+  user: string;
+  pass: string;
+  from: string;
+  [key: string]: unknown;
+}
+
+export interface TenantSettings {
+  code: string;
+  nameTh: string;
+  nameEn: string;
+  logoUrl: string | null;
+  palette: PaletteId;
+  smtp?: TenantSmtpSettings;
+}
 
 async function readTenantSettings(tenantId: string, db: Db): Promise<TenantSettings> {
   const t = await db.tenant.findUnique({ where: { id: tenantId } });
   if (!t) throw errors.not_found();
-  const p = (t.settings as { palette?: unknown }).palette;
-  return { code: t.code, nameTh: t.nameTh, nameEn: t.nameEn, logoUrl: t.logoUrl, palette: isPalette(p) ? p : DEFAULT_PALETTE };
+  const settings = (t.settings ?? {}) as { palette?: unknown; smtp?: TenantSmtpSettings };
+  const p = settings.palette;
+  const smtp = settings.smtp ?? {
+    enabled: false,
+    user: "",
+    pass: "",
+    from: "",
+  };
+  return {
+    code: t.code,
+    nameTh: t.nameTh,
+    nameEn: t.nameEn,
+    logoUrl: t.logoUrl,
+    palette: isPalette(p) ? p : DEFAULT_PALETTE,
+    smtp,
+  };
 }
 
 export async function getTenantSettings(tenantId: string): Promise<TenantSettings> {
   return readTenantSettings(tenantId, prisma);
 }
 
-/** เก็บคีย์อื่น ๆ ใน settings JSON ไว้ทั้งหมด — merge เฉพาะ palette ที่เปลี่ยน ไม่ทับทั้งก้อน */
+/** เก็บคีย์อื่น ๆ ใน settings JSON ไว้ทั้งหมด — merge palette และ smtp ที่เปลี่ยน ไม่ทับทั้งก้อน */
 export async function updateTenantSettings(input: { tenantId: string; actorId: string } & UpdateSettingsInput): Promise<void> {
   await prisma.$transaction(async (tx) => {
-    // อ่านผ่าน tx เดียวกัน ไม่ใช่ client กลาง — ไม่งั้นทรานแซกชันนี้กินคอนเนกชันจากพูลเพิ่มอีกเส้นเพื่ออ่าน
-    // ค่าเดิม และค่าที่อ่านได้ก็อยู่นอกสแนปช็อตของทรานแซกชัน (ค่า before ของ audit อาจไม่ตรงกับที่กำลังจะทับ)
     const before = await readTenantSettings(input.tenantId, tx);
     const t = await tx.tenant.findUniqueOrThrow({ where: { id: input.tenantId }, select: { settings: true } });
+    const currentSettings = (t.settings ?? {}) as Record<string, unknown>;
+
+    let newSmtp = before.smtp;
+    if (input.smtp) {
+      newSmtp = {
+        enabled: input.smtp.enabled,
+        user: input.smtp.user,
+        pass: input.smtp.pass ? input.smtp.pass : (before.smtp?.pass ?? ""),
+        from: input.smtp.from,
+      };
+    }
+
+    const updatedSettings = {
+      ...currentSettings,
+      palette: input.palette,
+      ...(newSmtp ? { smtp: newSmtp } : {}),
+    };
+
     await tx.tenant.update({
       where: { id: input.tenantId },
-      data: { nameTh: input.nameTh, nameEn: input.nameEn, logoUrl: input.logoUrl || null, settings: { ...(t.settings as object), palette: input.palette } },
+      data: {
+        nameTh: input.nameTh,
+        nameEn: input.nameEn,
+        logoUrl: input.logoUrl || null,
+        settings: updatedSettings as Prisma.InputJsonObject,
+      },
     });
     await writeAudit({ tenantId: input.tenantId, actorId: input.actorId, action: "tenant.settings_update", entity: "tenant", entityId: input.tenantId, before, after: input }, tx);
   });
+}
+
+export async function getTenantSmtp(tenantId: string): Promise<TenantSmtpSettings | null> {
+  const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } });
+  const s = (t?.settings as { smtp?: TenantSmtpSettings } | null)?.smtp;
+  return s && s.enabled && s.user && s.pass ? s : null;
 }
 
 export async function getTenantPalette(tenantId: string): Promise<PaletteId> {

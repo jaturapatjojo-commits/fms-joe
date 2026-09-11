@@ -1,0 +1,28 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fms-joe-app:latest
+    container_name: fms-joe-web
+    restart: unless-stopped
+    ports:
+      - "3010:3010"
+    env_file:
+      - .env.docker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - uploads_data:/app/public/uploads
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: fms-joe-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://web:3010
+    depends_on:
+      - web
+
+volumes:
+  uploads_data:
+    name: fms_joe_uploads_data

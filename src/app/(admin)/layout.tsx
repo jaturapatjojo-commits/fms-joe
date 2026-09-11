@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Loader2, User, Settings } from "lucide-react";
@@ -14,6 +14,8 @@ import { localizedName } from "@/shared/lib/format";
 import { hasPermission, P } from "@/features/identity";
 import { getTenantBrandingAction } from "@/features/identity/actions";
 
+const emptySubscribe = () => () => {};
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const t = useT();
@@ -23,14 +25,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { collapsed, toggleCollapsed } = useSidebarStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [prev, setPrev] = useState(pathname);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [branding, setBranding] = useState<{ nameTh?: string; nameEn?: string; logoUrl?: string | null }>({});
 
   if (pathname !== prev) { setPrev(pathname); setDrawerOpen(false); }
-  // ธง mounted กัน hydration mismatch: เนื้อหาบางส่วน (ธีม, ค่าจาก sidebar store ที่อ่าน localStorage)
-  // ต่างกันระหว่างฝั่ง server กับ client จึงต้องรอ mount ก่อนค่อยเรนเดอร์ของจริง
   useEffect(() => {
-    setMounted(true);
     getTenantBrandingAction().then((res) => {
       if (res.ok && res.data) {
         setBranding(res.data);

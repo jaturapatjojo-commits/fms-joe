@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.local
+.env.development
+.env*.local
+*.log
+npm-debug.log*
+tests
+e2e
+playwright*
+vitest*
+eslint*
+.dependency-cruiser.cjs
+tsconfig.tests.json

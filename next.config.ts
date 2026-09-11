@@ -8,7 +8,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   poweredByHeader: false,
+  allowedDevOrigins: ["10.128.5.79", "localhost:3010", "*.trycloudflare.com"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

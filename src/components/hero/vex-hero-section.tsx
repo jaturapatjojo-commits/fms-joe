@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Globe, Sparkles } from "lucide-react";
+import { ArrowRight, Globe } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 interface VexHeroSectionProps {
@@ -18,7 +18,7 @@ export function VexHeroSection({
   onExploreClick,
   chatHref = "/portal/curriculum",
   exploreHref = "#portal-content",
-  logoUrl,
+  logoUrl: _logoUrl,
   brandTitle = "วิทยาลัยสงฆ์มหาสารคาม",
 }: VexHeroSectionProps) {
   const [offsetY, setOffsetY] = useState(0);
