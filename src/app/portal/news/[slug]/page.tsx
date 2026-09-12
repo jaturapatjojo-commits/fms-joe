@@ -78,13 +78,17 @@ export default async function PublicNewsDetailPage({
       )}
 
       {/* Article Content */}
-      <div className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed">
-        {locale === "en" ? (
-          <div className="whitespace-pre-line text-base">{article.contentEn}</div>
-        ) : (
-          <div className="whitespace-pre-line text-base">{article.contentTh}</div>
-        )}
-      </div>
+      {(() => {
+        const rawContent = locale === "en" ? article.contentEn : article.contentTh;
+        const isHtml = /<[a-z][\s\S]*>/i.test(rawContent);
+        const formattedHtml = isHtml ? rawContent : rawContent.replace(/\n/g, "<br />");
+        return (
+          <div
+            className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed [&>p]:mb-4 [&_table]:border-collapse [&_table]:w-full [&_th]:border [&_th]:border-border [&_th]:p-2 [&_td]:border [&_td]:border-border [&_td]:p-2"
+            dangerouslySetInnerHTML={{ __html: formattedHtml }}
+          />
+        );
+      })()}
 
       {/* Back button footer */}
       <div className="border-t border-border pt-8 flex justify-between items-center">

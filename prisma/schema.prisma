@@ -41,6 +41,7 @@ model Tenant {
   departments    Department[]
   staffMembers   StaffMember[]
   curriculums    Curriculum[]
+  educationLevels EducationLevel[]
   resources      Resource[]
   reservations   Reservation[]
   documents      Document[]
@@ -348,10 +349,54 @@ model Curriculum {
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  majors CurriculumMajor[]
 
   @@unique([tenantId, code, revisionYear])
   @@index([tenantId, degreeLevel, isActive])
   @@map("curriculums")
+}
+
+/// สาขาวิชาภายใต้หลักสูตรการศึกษา
+model CurriculumMajor {
+  id              String   @id @default(uuid()) @db.Uuid
+  curriculumId    String   @map("curriculum_id") @db.Uuid
+  code            String?  @db.VarChar(50)
+  nameTh          String   @map("name_th") @db.VarChar(255)
+  nameEn          String   @map("name_en") @db.VarChar(255)
+  degreeTh        String?  @map("degree_th") @db.VarChar(255)
+  degreeEn        String?  @map("degree_en") @db.VarChar(255)
+  descriptionTh   String?  @map("description_th") @db.Text
+  descriptionEn   String?  @map("description_en") @db.Text
+  careerPaths     Json     @default("[]") @map("career_paths") @db.JsonB
+  studyPlan       Json     @default("[]") @map("study_plan") @db.JsonB
+  syllabusFileUrl String?  @map("syllabus_file_url") @db.VarChar(500)
+  sortOrder       Int      @default(0) @map("sort_order")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+
+  @@index([curriculumId, sortOrder])
+  @@map("curriculum_majors")
+}
+
+/// ระดับการศึกษาของหลักสูตร (เช่น ปริญญาตรี, ประกาศนียบัตร, ปวส.)
+model EducationLevel {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  code      String   @db.VarChar(50)
+  nameTh    String   @map("name_th") @db.VarChar(150)
+  nameEn    String   @map("name_en") @db.VarChar(150)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, code])
+  @@index([tenantId, sortOrder])
+  @@map("education_levels")
 }
 
 /// ทรัพยากรห้องประชุมและยานพาหนะ

@@ -1,6 +1,7 @@
 import { PortalNavbar } from "@/components/layout/portal-navbar";
 import { PortalFooter } from "@/components/layout/portal-footer";
 import { prisma } from "@/shared/lib/infra/prisma";
+import type { TenantContactSettings } from "@/features/identity";
 
 export default async function PortalLayout({
   children,
@@ -11,6 +12,8 @@ export default async function PortalLayout({
   const brandTitle = tenant?.nameTh ?? "วิทยาลัยสงฆ์มหาสารคาม";
   const brandEn = tenant?.nameEn ?? "Mahasarakham Buddhist College";
   const logoUrl = tenant?.logoUrl;
+  const settings = (tenant?.settings ?? {}) as { contact?: TenantContactSettings };
+  const contact = settings.contact;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
@@ -21,7 +24,12 @@ export default async function PortalLayout({
       <main className="flex-1">{children}</main>
 
       {/* Portal Footer styled with Liyon theme tokens */}
-      <PortalFooter brandTitle={brandTitle} brandEn={brandEn} logoUrl={logoUrl} />
+      <PortalFooter
+        brandTitle={brandTitle}
+        brandEn={brandEn}
+        logoUrl={logoUrl}
+        contact={contact}
+      />
     </div>
   );
 }

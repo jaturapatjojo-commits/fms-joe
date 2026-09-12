@@ -24,19 +24,33 @@ export interface LiyonDialogProps {
   danger?: boolean;
   /** `.dlg.wide` — max-width กว้างขึ้นสำหรับฟอร์มยาว */
   wide?: boolean;
+  className?: string;
   children: React.ReactNode;
 }
 
-export function LiyonDialog({ open, onOpenChange, danger, wide, children }: LiyonDialogProps) {
+export function LiyonDialog({ open, onOpenChange, danger, wide, className, children }: LiyonDialogProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px]" />
         <DialogPrimitive.Content
+          onInteractOutside={(e) => {
+            const target = e.target as HTMLElement | null;
+            if (target?.closest?.(".tox, .tox-tinymce-aux")) {
+              e.preventDefault();
+            }
+          }}
+          onFocusOutside={(e) => {
+            const target = e.target as HTMLElement | null;
+            if (target?.closest?.(".tox, .tox-tinymce-aux")) {
+              e.preventDefault();
+            }
+          }}
           className={cn(
             "dlg fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 outline-none",
             danger && "danger",
             wide && "wide",
+            className,
           )}
         >
           <div className="box">{children}</div>

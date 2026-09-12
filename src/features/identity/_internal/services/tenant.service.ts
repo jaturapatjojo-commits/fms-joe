@@ -14,6 +14,23 @@ export interface TenantSmtpSettings {
   [key: string]: unknown;
 }
 
+export interface TenantContactSettings {
+  address: string;
+  phone: string;
+  email: string;
+  workingHours: string;
+  mapUrl: string;
+  facebookUrl: string;
+  lineId: string;
+  [key: string]: unknown;
+}
+
+export interface TenantGeminiSettings {
+  apiKey: string;
+  model: string;
+  [key: string]: unknown;
+}
+
 export interface TenantSettings {
   code: string;
   nameTh: string;
@@ -21,18 +38,39 @@ export interface TenantSettings {
   logoUrl: string | null;
   palette: PaletteId;
   smtp?: TenantSmtpSettings;
+  contact?: TenantContactSettings;
+  gemini?: TenantGeminiSettings;
 }
+
 
 async function readTenantSettings(tenantId: string, db: Db): Promise<TenantSettings> {
   const t = await db.tenant.findUnique({ where: { id: tenantId } });
   if (!t) throw errors.not_found();
-  const settings = (t.settings ?? {}) as { palette?: unknown; smtp?: TenantSmtpSettings };
+  const settings = (t.settings ?? {}) as {
+    palette?: unknown;
+    smtp?: TenantSmtpSettings;
+    contact?: TenantContactSettings;
+    gemini?: TenantGeminiSettings;
+  };
   const p = settings.palette;
   const smtp = settings.smtp ?? {
     enabled: false,
     user: "",
     pass: "",
     from: "",
+  };
+  const contact = settings.contact ?? {
+    address: "",
+    phone: "",
+    email: "",
+    workingHours: "",
+    mapUrl: "",
+    facebookUrl: "",
+    lineId: "",
+  };
+  const gemini = settings.gemini ?? {
+    apiKey: "",
+    model: "gemini-3.6-flash",
   };
   return {
     code: t.code,
@@ -41,14 +79,17 @@ async function readTenantSettings(tenantId: string, db: Db): Promise<TenantSetti
     logoUrl: t.logoUrl,
     palette: isPalette(p) ? p : DEFAULT_PALETTE,
     smtp,
+    contact,
+    gemini,
   };
 }
+
 
 export async function getTenantSettings(tenantId: string): Promise<TenantSettings> {
   return readTenantSettings(tenantId, prisma);
 }
 
-/** เก็บคีย์อื่น ๆ ใน settings JSON ไว้ทั้งหมด — merge palette และ smtp ที่เปลี่ยน ไม่ทับทั้งก้อน */
+/** เก็บคีย์อื่น ๆ ใน settings JSON ไว้ทั้งหมด — merge palette, smtp และ contact ที่เปลี่ยน ไม่ทับทั้งก้อน */
 export async function updateTenantSettings(input: { tenantId: string; actorId: string } & UpdateSettingsInput): Promise<void> {
   await prisma.$transaction(async (tx) => {
     const before = await readTenantSettings(input.tenantId, tx);
@@ -65,10 +106,33 @@ export async function updateTenantSettings(input: { tenantId: string; actorId: s
       };
     }
 
+    let newContact = before.contact;
+    if (input.contact) {
+      newContact = {
+        address: input.contact.address ?? "",
+        phone: input.contact.phone ?? "",
+        email: input.contact.email ?? "",
+        workingHours: input.contact.workingHours ?? "",
+        mapUrl: input.contact.mapUrl ?? "",
+        facebookUrl: input.contact.facebookUrl ?? "",
+        lineId: input.contact.lineId ?? "",
+      };
+    }
+
+    let newGemini = before.gemini;
+    if (input.gemini) {
+      newGemini = {
+        apiKey: input.gemini.apiKey ? input.gemini.apiKey : (before.gemini?.apiKey ?? ""),
+        model: input.gemini.model || before.gemini?.model || "gemini-3.6-flash",
+      };
+    }
+
     const updatedSettings = {
       ...currentSettings,
       palette: input.palette,
       ...(newSmtp ? { smtp: newSmtp } : {}),
+      ...(newContact ? { contact: newContact } : {}),
+      ...(newGemini ? { gemini: newGemini } : {}),
     };
 
     await tx.tenant.update({
@@ -84,6 +148,12 @@ export async function updateTenantSettings(input: { tenantId: string; actorId: s
   });
 }
 
+export async function getTenantGemini(tenantId: string): Promise<TenantGeminiSettings | null> {
+  const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } });
+  const g = (t?.settings as { gemini?: TenantGeminiSettings } | null)?.gemini;
+  return g && g.apiKey ? g : null;
+}
+
 export async function getTenantSmtp(tenantId: string): Promise<TenantSmtpSettings | null> {
   const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } });
   const s = (t?.settings as { smtp?: TenantSmtpSettings } | null)?.smtp;
@@ -95,6 +165,7 @@ export async function getTenantPalette(tenantId: string): Promise<PaletteId> {
   const p = (t?.settings as { palette?: unknown } | null)?.palette;
   return isPalette(p) ? p : DEFAULT_PALETTE;
 }
+
 
 /**
  * tenant ของ session ถ้ามี — import แบบ dynamic เพราะ `../auth` ดึง next-auth ทั้งก้อนเข้ามา และ

@@ -6,10 +6,12 @@ import { zodErrorMap } from "@/shared/lib/i18n/zod-locale";
 import { P } from "../../permissions";
 import { requirePermission } from "../rbac";
 import { requireSession } from "../session";
-import { errors } from "@/shared/lib/errors";
+import { errors, isAppError } from "@/shared/lib/errors";
 import nodemailer from "nodemailer";
-import { updateSettingsSchema, testSmtpSchema } from "../validations/settings";
+import { updateSettingsSchema, testSmtpSchema, testGeminiSchema } from "../validations/settings";
 import { getTenantSettings, updateTenantSettings, type TenantSettings } from "../services/tenant.service";
+import { testGeminiConnection } from "@/shared/lib/ai/gemini";
+
 
 export async function getSettingsAction(): Promise<ActionResult<TenantSettings>> {
   return runAction(async () => getTenantSettings((await requirePermission(P.settingsManage)).tenantId));
@@ -75,3 +77,26 @@ export async function testSmtpConnectionAction(input: unknown): Promise<ActionRe
     return { success: true };
   });
 }
+
+export async function testGeminiConnectionAction(
+  input: unknown,
+): Promise<ActionResult<{ success: boolean; latencyMs: number; model: string; message: string }>> {
+  return runAction(async () => {
+    await requirePermission(P.settingsManage);
+    const parsed = testGeminiSchema.parse(input, { error: zodErrorMap(await getLocale()) });
+    try {
+      const result = await testGeminiConnection(parsed.apiKey, parsed.model);
+      return {
+        success: true,
+        latencyMs: result.latencyMs,
+        model: result.model,
+        message: result.message,
+      };
+    } catch (err: unknown) {
+      if (isAppError(err)) throw err;
+      const msg = err instanceof Error ? err.message : String(err);
+      throw errors.validation(msg);
+    }
+  });
+}
+

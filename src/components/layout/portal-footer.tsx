@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import {
   GraduationCap,
   MapPin,
@@ -17,12 +17,14 @@ import {
 } from "lucide-react";
 import { LanguageSwitcher } from "./language-switcher";
 import { cn } from "@/shared/lib/utils";
+import type { TenantContactSettings } from "@/features/identity";
 
 interface PortalFooterProps {
   brandTitle: string;
   brandEn?: string | null;
   tagline?: string | null;
   logoUrl?: string | null;
+  contact?: TenantContactSettings | null;
   className?: string;
 }
 
@@ -31,6 +33,7 @@ export function PortalFooter({
   brandEn,
   tagline = "มุ่งสู่ความเป็นเลิศทางวิชาการและการจัดการยุคดิจิทัล เพื่อการพัฒนาสังคมอย่างยั่งยืน",
   logoUrl,
+  contact,
   className,
 }: PortalFooterProps) {
   const currentYear = new Date().getFullYear();
@@ -194,34 +197,108 @@ export function PortalFooter({
               ติดต่อหน่วยงาน
             </h3>
             <div className="space-y-2.5 text-xs text-muted-foreground leading-relaxed">
-              <div className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" />
-                <span>
-                  79 หมู่ 1 ถนนพหลโยธิน ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา 13170
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                <a
-                  href="tel:035248000"
-                  className="hover:text-primary transition-colors"
-                >
-                  035-248-000
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
-                <a
-                  href="mailto:contact@mcu.ac.th"
-                  className="hover:text-primary transition-colors"
-                >
-                  contact@mcu.ac.th
-                </a>
-              </div>
+              {contact?.address ? (
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" />
+                  {contact.mapUrl ? (
+                    <a
+                      href={contact.mapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors flex items-center gap-1 group/map"
+                    >
+                      <span>{contact.address}</span>
+                      <ExternalLink className="w-3 h-3 shrink-0 opacity-70 group-hover/map:opacity-100" />
+                    </a>
+                  ) : (
+                    <span>{contact.address}</span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" />
+                  <span>
+                    79 หมู่ 1 ถนนพหลโยธิน ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา 13170
+                  </span>
+                </div>
+              )}
+
+              {contact?.phone ? (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <a
+                    href={`tel:${contact.phone.replace(/[^0-9+]/g, "")}`}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {contact.phone}
+                  </a>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <a
+                    href="tel:035248000"
+                    className="hover:text-primary transition-colors"
+                  >
+                    035-248-000
+                  </a>
+                </div>
+              )}
+
+              {contact?.email ? (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {contact.email}
+                  </a>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <a
+                    href="mailto:contact@mcu.ac.th"
+                    className="hover:text-primary transition-colors"
+                  >
+                    contact@mcu.ac.th
+                  </a>
+                </div>
+              )}
+
               <div className="flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span>จันทร์ - ศุกร์: 08.30 - 16.30 น.</span>
+                <span>{contact?.workingHours || "จันทร์ - ศุกร์: 08.30 - 16.30 น."}</span>
               </div>
+
+              {/* Social Channels if provided */}
+              {(contact?.facebookUrl || contact?.lineId) && (
+                <div className="pt-2 flex flex-wrap gap-2">
+                  {contact.facebookUrl && (
+                    <a
+                      href={contact.facebookUrl.startsWith("http") ? contact.facebookUrl : `https://${contact.facebookUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-600/20 hover:bg-blue-600/20 transition-colors"
+                    >
+                      <span>Facebook</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  )}
+                  {contact.lineId && (
+                    <a
+                      href={contact.lineId.startsWith("http") ? contact.lineId : `https://line.me/R/ti/p/${contact.lineId.replace("@", "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border border-emerald-600/20 hover:bg-emerald-600/20 transition-colors"
+                    >
+                      <span>LINE: {contact.lineId}</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

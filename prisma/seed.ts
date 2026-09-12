@@ -180,6 +180,31 @@ async function main() {
     skipDuplicates: true,
   });
 
+  // Seed Education Levels
+  await prisma.educationLevel.upsert({
+    where: { tenantId_code: { tenantId: core.tenantId, code: "CERTIFICATE" } },
+    update: {},
+    create: {
+      tenantId: core.tenantId,
+      code: "CERTIFICATE",
+      nameTh: "ระดับประกาศนียบัตร",
+      nameEn: "Certificate",
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.educationLevel.upsert({
+    where: { tenantId_code: { tenantId: core.tenantId, code: "BACHELOR" } },
+    update: {},
+    create: {
+      tenantId: core.tenantId,
+      code: "BACHELOR",
+      nameTh: "ระดับปริญญาตรี",
+      nameEn: "Bachelor's Degree",
+      sortOrder: 2,
+    },
+  });
+
   // Seed Curriculums
   await prisma.curriculum.createMany({
     data: [
@@ -223,26 +248,108 @@ async function main() {
       },
       {
         tenantId: core.tenantId,
-        code: "MIT-2568",
-        degreeLevel: "MASTER",
-        nameTh: "หลักสูตรวิทยาศาสตรมหาบัณฑิต สาขาวิชาเทคโนโลยีสารสนเทศและการสื่อสาร",
-        nameEn: "Master of Science in Information and Communication Technology",
-        degreeTh: "วท.ม. (เทคโนโลยีสารสนเทศและการสื่อสาร)",
-        degreeEn: "M.Sc. (Information and Communication Technology)",
+        code: "CERT-2568",
+        degreeLevel: "CERTIFICATE",
+        nameTh: "หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง สาขาวิชาเทคโนโลยีสารสนเทศและการสื่อสารดิจิทัล",
+        nameEn: "High Vocational Certificate in Information Technology and Digital Communication",
+        degreeTh: "ปวส. (เทคโนโลยีสารสนเทศและการสื่อสารดิจิทัล)",
+        degreeEn: "Dip. in Info. Tech. & Digital Comm.",
         revisionYear: 2568,
-        totalCredits: 36,
+        totalCredits: 84,
         studyYears: 2,
-        tuitionFee: "28,000 บาท / ภาคการศึกษา",
-        descriptionTh: "มุ่งเน้นงานวิจัยขั้นสูงด้าน Data Science, Enterprise AI Solutions, และ Cybersecurity",
-        descriptionEn: "Focuses on advanced research in Data Science, Enterprise AI Solutions, and Cybersecurity.",
-        careerPaths: ["Senior Software Architect", "Data Scientist", "IT Director"],
-        syllabusFileUrl: "https://example.com/syllabus/mit-2568.pdf",
+        tuitionFee: "12,000 บาท / ภาคการศึกษา",
+        descriptionTh: "มุ่งเน้นการปฏิบัติการทางวิชาชีพด้านการพัฒนาระบบสารสนเทศ และการประยุกต์ใช้เทคโนโลยีดิจิทัลในองค์กร",
+        descriptionEn: "Focuses on hands-on practical skills in information system development and applied digital technologies.",
+        careerPaths: ["Junior Software Developer", "Network Support Technician", "IT Support Specialist"],
+        syllabusFileUrl: "https://example.com/syllabus/cert-2568.pdf",
+        isOpenAdmission: true,
+        isActive: true,
+      },
+      {
+        tenantId: core.tenantId,
+        code: "255018511040027",
+        degreeLevel: "BACHELOR",
+        nameTh: "หลักสูตรพุทธศาสตรบัณฑิต",
+        nameEn: "Bachelor of Arts Program in Buddhist Studies",
+        degreeTh: "พุทธศาสตรบัณฑิต (พธ.บ.)",
+        degreeEn: "Bachelor of Arts (B.A.)",
+        revisionYear: 2560,
+        totalCredits: 140,
+        studyYears: 4,
+        tuitionFee: "14,000 บาท / ปีการศึกษา (ภาคการศึกษาละ 7,000 บาท)",
+        descriptionTh: "เป็นหลักสูตรที่มุ่งสร้างความรู้ความเข้าใจและมีทักษะการประยุกต์ใช้หลักธรรมทางพระพุทธศาสนา โดยมีการสอนทั้งทฤษฎีและหลักการปฏิบัติด้านพระพุทธศาสนา เสริมสร้างศักยภาพให้นิสิตทั้งพระภิกษุสามเณรและคฤหัสถ์สามารถนำความรู้ด้านพุทธศาสนาไปประยุกต์ใช้บูรณาการกับศาสตร์สมัยใหม่แขนงต่าง ๆ เพื่อพัฒนาตนเอง องค์กร และสังคม",
+        descriptionEn: "A comprehensive program designed to cultivate profound understanding and practical application of Buddhist doctrines, integrating traditional Buddhist wisdom with modern multidisciplinary sciences.",
+        careerPaths: [
+          "บุคลากรทางการศึกษา (ครู, อาจารย์, นักวิชาการศึกษา)",
+          "นักวิชาการศาสนา",
+          "อนุศาสนาจารย์ (ทหาร, ตำรวจ)",
+          "เจ้าหน้าที่กรมราชทัณฑ์",
+          "เจ้าหน้าที่กรมสุขภาพจิต",
+          "เจ้าหน้าที่ฝึกอบรมและพัฒนาทรัพยากรมนุษย์",
+          "นักสังคมสงเคราะห์ฟื้นฟูและพัฒนาจิตใจ",
+        ],
+        syllabusFileUrl: "https://example.com/syllabus/buddhist-studies-2560.pdf",
         isOpenAdmission: true,
         isActive: true,
       },
     ],
     skipDuplicates: true,
   });
+
+  const buddhistCurriculum = await prisma.curriculum.findFirst({
+    where: { tenantId: core.tenantId, code: "255018511040027" },
+  });
+  if (buddhistCurriculum) {
+    await prisma.curriculumMajor.deleteMany({
+      where: { curriculumId: buddhistCurriculum.id },
+    });
+    await prisma.curriculumMajor.createMany({
+      data: [
+        {
+          curriculumId: buddhistCurriculum.id,
+          code: "BUD-01",
+          nameTh: "สาขาวิชาพระพุทธศาสนา",
+          nameEn: "Buddhism",
+          degreeTh: "พุทธศาสตรบัณฑิต (พระพุทธศาสนา)",
+          degreeEn: "Bachelor of Arts (Buddhism)",
+          descriptionTh: "มุ่งเน้นการศึกษาหลักพุทธธรรม ปรัชญาเถรวาท พระไตรปิฎก และวรรณคดีทางพระพุทธศาสนา เพื่อประยุกต์ใช้ในการเผยแผ่และการพัฒนาสังคม",
+          descriptionEn: "Focuses on Buddhist doctrines, Theravada philosophy, Tipitaka, and Buddhist literature.",
+          careerPaths: [
+            "พระธรรมทูตทั้งในประเทศและต่างประเทศ",
+            "ครูสอนวิชาพระพุทธศาสนาและจริยธรรมในสถานศึกษา",
+            "นักวิชาการทางพระพุทธศาสนา",
+            "บุคลากรทางการศึกษาและวัฒนธรรม",
+            "นักพัฒนาชุมชนและสังคมสงเคราะห์",
+            "นักเขียน นักแปล และบรรณาธิการวารสารทางศาสนา",
+            "ผู้บริหารองค์กรทางศาสนาและมูลนิธิ",
+          ],
+          sortOrder: 1,
+          isActive: true,
+        },
+        {
+          curriculumId: buddhistCurriculum.id,
+          code: "PHI-02",
+          nameTh: "สาขาวิชาปรัชญา",
+          nameEn: "Philosophy",
+          degreeTh: "พุทธศาสตรบัณฑิต (ปรัชญา)",
+          degreeEn: "Bachelor of Arts (Philosophy)",
+          descriptionTh: "มุ่งเน้นการศึกษาตรรกศาสตร์ ปรัชญาตะวันออกและตะวันตก จริยศาสตร์ ญาณวิทยา และการคิดเชิงวิพากษ์ เพื่อเสริมสร้างทักษะการคิดวิเคราะห์อย่างมีเหตุผลและรอบด้าน",
+          descriptionEn: "Focuses on logic, Eastern and Western philosophy, ethics, epistemology, and critical thinking.",
+          careerPaths: [
+            "นักวิชาการทางปรัชญาและศาสนา",
+            "อาจารย์และครูสอนวิชาปรัชญา จริยศาสตร์ และสังคมศาสตร์",
+            "นักวิเคราะห์นโยบายและแผน",
+            "นักเขียน นักวิจารณ์ และคอลัมนิสต์",
+            "นักวิจัยทางสังคมศาสตร์และมนุษยศาสตร์",
+            "บุคลากรด้านทรัพยากรบุคคลและการพัฒนาองค์กร",
+          ],
+          sortOrder: 2,
+          isActive: true,
+        },
+      ],
+    });
+  }
+
 
   
   // Seed Resources for Reservations

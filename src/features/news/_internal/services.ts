@@ -27,6 +27,8 @@ export interface NewsArticleListItemDto {
   slug: string;
   summaryTh: string | null;
   summaryEn: string | null;
+  contentTh?: string;
+  contentEn?: string;
   coverImageUrl: string | null;
   status: string;
   isPinned: boolean;
@@ -153,6 +155,8 @@ export async function listAdminNewsArticles(
     slug: a.slug,
     summaryTh: a.summaryTh,
     summaryEn: a.summaryEn,
+    contentTh: a.contentTh,
+    contentEn: a.contentEn,
     coverImageUrl: a.coverImageUrl,
     status: a.status,
     isPinned: a.isPinned,
@@ -295,24 +299,75 @@ export async function getAdminNewsArticleById(
   };
 }
 
+/** จัดการ Slug ให้ถูกต้องและไม่ซ้ำกันใน Tenant */
+async function resolveUniqueSlug(
+  tenantId: string,
+  baseSlug: string | null | undefined,
+  titleFallback: string,
+  existingId?: string,
+): Promise<string> {
+  let slug = (baseSlug || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
+  if (!slug) {
+    slug = titleFallback
+      .trim()
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+  }
+
+  if (!slug || slug === "-") {
+    slug = `news-${Date.now()}`;
+  }
+
+  let finalSlug = slug;
+  let counter = 1;
+  while (
+    await prisma.newsArticle.findFirst({
+      where: {
+        tenantId,
+        slug: finalSlug,
+        ...(existingId ? { id: { not: existingId } } : {}),
+      },
+    })
+  ) {
+    counter++;
+    finalSlug = `${slug}-${counter}`;
+  }
+
+  return finalSlug;
+}
+
 /** สร้างข่าวสาร */
 export async function createNewsArticle(
   tenantId: string,
   userId: string,
   input: CreateNewsArticleInput,
 ): Promise<NewsArticleDetailDto> {
+  const titleEn = input.titleEn?.trim() || input.titleTh;
+  const contentEn = input.contentEn?.trim() || input.contentTh;
+  const summaryTh = input.summaryTh?.trim() || null;
+  const summaryEn = input.summaryEn?.trim() || summaryTh;
+  const slug = await resolveUniqueSlug(tenantId, input.slug, titleEn);
+
   const created = await prisma.newsArticle.create({
     data: {
       tenantId,
       createdById: userId,
       categoryId: input.categoryId || null,
       titleTh: input.titleTh,
-      titleEn: input.titleEn,
-      slug: input.slug,
-      summaryTh: input.summaryTh ?? null,
-      summaryEn: input.summaryEn ?? null,
+      titleEn,
+      slug,
+      summaryTh,
+      summaryEn,
       contentTh: input.contentTh,
-      contentEn: input.contentEn,
+      contentEn,
       coverImageUrl: input.coverImageUrl || null,
       attachmentUrls: input.attachmentUrls ?? [],
       status: input.status,
@@ -355,17 +410,23 @@ export async function updateNewsArticle(
   tenantId: string,
   input: UpdateNewsArticleInput,
 ): Promise<NewsArticleDetailDto> {
+  const titleEn = input.titleEn?.trim() || input.titleTh;
+  const contentEn = input.contentEn?.trim() || input.contentTh;
+  const summaryTh = input.summaryTh?.trim() || null;
+  const summaryEn = input.summaryEn?.trim() || summaryTh;
+  const slug = await resolveUniqueSlug(tenantId, input.slug, titleEn, input.id);
+
   const updated = await prisma.newsArticle.update({
     where: { id: input.id, tenantId },
     data: {
       categoryId: input.categoryId || null,
       titleTh: input.titleTh,
-      titleEn: input.titleEn,
-      slug: input.slug,
-      summaryTh: input.summaryTh ?? null,
-      summaryEn: input.summaryEn ?? null,
+      titleEn,
+      slug,
+      summaryTh,
+      summaryEn,
       contentTh: input.contentTh,
-      contentEn: input.contentEn,
+      contentEn,
       coverImageUrl: input.coverImageUrl || null,
       attachmentUrls: input.attachmentUrls ?? [],
       status: input.status,

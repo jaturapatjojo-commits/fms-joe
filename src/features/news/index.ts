@@ -4,3 +4,4 @@ export type {
   NewsArticleListItemDto,
   NewsArticleDetailDto,
 } from "./_internal/services";
+export type { GeneratedEnglishNews } from "@/shared/lib/ai/gemini";

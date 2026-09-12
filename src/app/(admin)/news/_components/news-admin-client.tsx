@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Edit2, Trash2, Pin, PinOff, Eye, Globe, Newspaper, AlertCircle } from "lucide-react";
+import { Plus, Edit2, Trash2, Pin, PinOff, Eye, Globe, Newspaper, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useT, useLocale } from "@/shared/lib/i18n/client";
 import { formatDate } from "@/shared/lib/format";
@@ -18,12 +18,14 @@ import {
   type DataTableColumn,
 } from "@/shared/components/liyon";
 import { Button } from "@/components/ui/button";
+import { RichTextEditor } from "@/shared/components/rich-text-editor";
 import type { NewsArticleListItemDto, NewsCategoryDto } from "@/features/news";
 import {
   createNewsArticleAction,
   updateNewsArticleAction,
   deleteNewsArticleAction,
   togglePinNewsArticleAction,
+  generateEnglishNewsWithAiAction,
 } from "@/features/news/actions";
 
 interface Props {
@@ -61,9 +63,11 @@ export function NewsAdminClient({
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
   const [isPinned, setIsPinned] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   const openCreateDialog = () => {
     setEditingItem(null);
+    setErrors({});
     setTitleTh("");
     setTitleEn("");
     setSlug("");
@@ -80,33 +84,100 @@ export function NewsAdminClient({
 
   const openEditDialog = (item: NewsArticleListItemDto) => {
     setEditingItem(item);
+    setErrors({});
     setTitleTh(item.titleTh);
     setTitleEn(item.titleEn);
     setSlug(item.slug);
     setCategoryId(item.categoryId ?? "");
     setSummaryTh(item.summaryTh ?? "");
     setSummaryEn(item.summaryEn ?? "");
-    setContentTh(item.summaryTh ?? item.titleTh);
-    setContentEn(item.summaryEn ?? item.titleEn);
+    setContentTh(item.contentTh ?? item.summaryTh ?? item.titleTh);
+    setContentEn(item.contentEn ?? item.summaryEn ?? item.titleEn);
     setCoverImageUrl(item.coverImageUrl ?? "");
     setStatus(item.status as "DRAFT" | "PUBLISHED" | "ARCHIVED");
     setIsPinned(item.isPinned);
     setModalOpen(true);
   };
 
+  const [isGeneratingEn, setIsGeneratingEn] = useState(false);
+
+  const handleAiGenerateEnglish = async () => {
+    const tinymce = typeof window !== "undefined"
+      ? (window as unknown as { tinymce?: { get: (id: string) => { getContent: () => string; setContent: (c: string) => void } | null } }).tinymce
+      : null;
+    const currentContentTh = tinymce?.get("news-content-th")?.getContent() ?? contentTh;
+    const textOnlyContent = currentContentTh.replace(/<[^>]*>/g, "").trim();
+    if (!titleTh.trim() || (!currentContentTh.trim() && !textOnlyContent)) {
+      toast.error(t("news.aiRequireThai"));
+      return;
+    }
+
+    setIsGeneratingEn(true);
+    try {
+      const res = await generateEnglishNewsWithAiAction({
+        titleTh: titleTh.trim(),
+        summaryTh: summaryTh.trim() || null,
+        contentTh: currentContentTh.trim(),
+      });
+
+      if (res.ok) {
+        setTitleEn(res.data.titleEn);
+        setSummaryEn(res.data.summaryEn);
+        setContentEn(res.data.contentEn);
+        tinymce?.get("news-content-en")?.setContent(res.data.contentEn);
+        if (res.data.slug) {
+          setSlug(res.data.slug);
+        }
+        toast.success(t("news.aiGenerateSuccess"));
+      } else {
+        const msg =
+          res.error.message && res.error.message !== "internal"
+            ? res.error.message
+            : t("news.aiNoKey");
+        toast.error(msg);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsGeneratingEn(false);
+    }
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    const tinymce = typeof window !== "undefined"
+      ? (window as unknown as { tinymce?: { get: (id: string) => { getContent: () => string } | null } }).tinymce
+      : null;
+
+    const currentContentTh = tinymce?.get("news-content-th")?.getContent() ?? contentTh;
+    const currentContentEn = tinymce?.get("news-content-en")?.getContent() ?? contentEn;
+
+    const hasThaiTitle = titleTh.trim().length > 0;
+    const plainTextTh = currentContentTh.replace(/<[^>]*>/g, "").trim();
+    const hasThaiContent = plainTextTh.length > 0 || /<img|<iframe|<svg/i.test(currentContentTh);
+
+    if (!hasThaiTitle) {
+      toast.error(t("news.titleTh") + ": " + t("common.required"));
+      setErrors({ titleTh: [t("common.required")] });
+      return;
+    }
+    if (!hasThaiContent) {
+      toast.error(t("news.contentTh") + ": " + t("common.required"));
+      setErrors({ contentTh: [t("common.required")] });
+      return;
+    }
+
     startTransition(async () => {
       const payload = {
-        titleTh,
-        titleEn,
-        slug,
+        titleTh: titleTh.trim(),
+        titleEn: titleEn.trim() || titleTh.trim(),
+        slug: slug.trim(),
         categoryId: categoryId || null,
-        summaryTh,
-        summaryEn,
-        contentTh: contentTh || titleTh,
-        contentEn: contentEn || titleEn,
-        coverImageUrl: coverImageUrl || null,
+        summaryTh: summaryTh.trim(),
+        summaryEn: summaryEn.trim() || summaryTh.trim(),
+        contentTh: currentContentTh.trim(),
+        contentEn: currentContentEn.trim() || currentContentTh.trim(),
+        coverImageUrl: coverImageUrl.trim() || null,
         attachmentUrls: [],
         status,
         isPinned,
@@ -120,8 +191,15 @@ export function NewsAdminClient({
             prev.map((a) => (a.id === editingItem.id ? { ...a, ...res.data } : a)),
           );
           setModalOpen(false);
+          setErrors({});
         } else {
-          toast.error(res.error.message);
+          if (res.error.fieldErrors) {
+            setErrors(res.error.fieldErrors);
+            const firstMsg = Object.values(res.error.fieldErrors).flat()[0];
+            toast.error(firstMsg || res.error.message);
+          } else {
+            toast.error(res.error.message || t("error.unknown"));
+          }
         }
       } else {
         const res = await createNewsArticleAction(payload);
@@ -129,8 +207,15 @@ export function NewsAdminClient({
           toast.success(t("news.saveSuccess"));
           setArticles((prev) => [res.data, ...prev]);
           setModalOpen(false);
+          setErrors({});
         } else {
-          toast.error(res.error.message);
+          if (res.error.fieldErrors) {
+            setErrors(res.error.fieldErrors);
+            const firstMsg = Object.values(res.error.fieldErrors).flat()[0];
+            toast.error(firstMsg || res.error.message);
+          } else {
+            toast.error(res.error.message || t("error.unknown"));
+          }
         }
       }
     });
@@ -304,15 +389,40 @@ export function NewsAdminClient({
       />
 
       {/* Modal เขียน / แก้ไขข่าว */}
-      <LiyonDialog open={modalOpen} onOpenChange={setModalOpen}>
+      <LiyonDialog wide className="!max-w-4xl" open={modalOpen} onOpenChange={setModalOpen}>
         <form onSubmit={handleSave}>
           <LiyonDialogHeader
             title={editingItem ? t("news.edit") : t("news.create")}
             description={t("news.subtitle")}
           />
           <LiyonDialogBody className="space-y-4 max-h-[70vh] overflow-y-auto">
+            {/* AI Auto-generate English banner */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg border border-amber-300/80 bg-amber-50/70 dark:border-amber-800/60 dark:bg-amber-950/20">
+              <div className="flex items-start sm:items-center gap-2">
+                <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-0 shrink-0" />
+                <span className="text-xs text-muted-foreground">
+                  {t("news.aiGenerateHint")}
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isGeneratingEn || isPending}
+                onClick={handleAiGenerateEnglish}
+                className="border-amber-400/80 bg-white/90 hover:bg-amber-100 text-amber-950 dark:bg-amber-900/40 dark:border-amber-700 dark:text-amber-200 dark:hover:bg-amber-900/70 shrink-0 gap-1.5 font-medium shadow-xs"
+              >
+                {isGeneratingEn ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-600 dark:text-amber-400" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                )}
+                <span>{isGeneratingEn ? t("news.aiGenerating") : t("news.aiGenerateEn")}</span>
+              </Button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <LiyonField label={t("news.titleTh")}>
+              <LiyonField label={t("news.titleTh")} error={errors.titleTh?.[0]}>
                 <input
                   type="text"
                   required
@@ -333,27 +443,29 @@ export function NewsAdminClient({
                 />
               </LiyonField>
 
-              <LiyonField label={t("news.titleEn")}>
+              <LiyonField label={t("news.titleEn")} hint={t("common.optional")} error={errors.titleEn?.[0]}>
                 <input
                   type="text"
-                  required
                   value={titleEn}
                   onChange={(e) => setTitleEn(e.target.value)}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  placeholder="e.g. Annual Teacher Homage Ceremony 2026"
+                  placeholder="e.g. Annual Teacher Homage Ceremony 2026 (เว้นว่างได้)"
                 />
               </LiyonField>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <LiyonField label={t("news.slug")} hint="ใช้สร้าง URL ภาษาอังกฤษ เช่น teacher-homage-2026">
+              <LiyonField
+                label={t("news.slug")}
+                hint="URL ภาษาอังกฤษ เช่น teacher-homage-2026 (หากเว้นว่าง ระบบจะสร้างให้อัตโนมัติ)"
+                error={errors.slug?.[0]}
+              >
                 <input
                   type="text"
-                  required
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  placeholder="annual-ceremony-2026"
+                  placeholder="เช่น annual-ceremony-2026 (เว้นว่างได้)"
                 />
               </LiyonField>
 
@@ -384,7 +496,7 @@ export function NewsAdminClient({
                 </LiyonSelect>
               </LiyonField>
 
-              <LiyonField label={t("news.coverImageUrl")}>
+              <LiyonField label={t("news.coverImageUrl")} error={errors.coverImageUrl?.[0]}>
                 <input
                   type="url"
                   value={coverImageUrl}
@@ -395,7 +507,7 @@ export function NewsAdminClient({
               </LiyonField>
             </div>
 
-            <LiyonField label={t("news.summaryTh")}>
+            <LiyonField label={t("news.summaryTh")} error={errors.summaryTh?.[0]}>
               <textarea
                 rows={2}
                 value={summaryTh}
@@ -405,7 +517,7 @@ export function NewsAdminClient({
               />
             </LiyonField>
 
-            <LiyonField label={t("news.summaryEn")}>
+            <LiyonField label={t("news.summaryEn")} hint={t("common.optional")} error={errors.summaryEn?.[0]}>
               <textarea
                 rows={2}
                 value={summaryEn}
@@ -415,25 +527,23 @@ export function NewsAdminClient({
               />
             </LiyonField>
 
-            <LiyonField label={t("news.contentTh")}>
-              <textarea
-                rows={5}
-                required
+            <LiyonField label={t("news.contentTh")} error={errors.contentTh?.[0]}>
+              <RichTextEditor
+                id="news-content-th"
                 value={contentTh}
-                onChange={(e) => setContentTh(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-sans"
-                placeholder="พิมพ์เนื้อหาข่าวฉบับเต็ม..."
+                onChange={setContentTh}
+                placeholder="พิมพ์เนื้อหาข่าวฉบับเต็ม พร้อมจัดรูปแบบ หัวข้อ ตัวหนา ตาราง ลิงก์ รูปภาพ..."
+                height={350}
               />
             </LiyonField>
 
-            <LiyonField label={t("news.contentEn")}>
-              <textarea
-                rows={5}
-                required
+            <LiyonField label={t("news.contentEn")} hint={t("common.optional")} error={errors.contentEn?.[0]}>
+              <RichTextEditor
+                id="news-content-en"
                 value={contentEn}
-                onChange={(e) => setContentEn(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-sans"
-                placeholder="Full article content in English..."
+                onChange={setContentEn}
+                placeholder="Full article content in English with rich formatting..."
+                height={350}
               />
             </LiyonField>
           </LiyonDialogBody>
