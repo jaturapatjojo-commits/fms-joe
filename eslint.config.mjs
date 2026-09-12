@@ -14,8 +14,7 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   // prisma/** และ scripts/** เคยถูก ignore ไว้ทั้งก้อน ทั้งที่เป็นโค้ดที่รันจริง (seed, bootstrap,
-  // e2e-reset, sync-liyon-theme) — A8 เอาออกเพื่อให้เกต lint ครอบด้วย
-  globalIgnores([".next/**", "out/**", "next-env.d.ts", "src/generated/**", "**/*.d.ts", "e2e/**", "playwright.config.ts", "tests/**"]),
+  globalIgnores([".next/**", "dist/**", "electron/**", "out/**", "next-env.d.ts", "src/generated/**", "**/*.d.ts", "e2e/**", "playwright.config.ts", "tests/**"]),
   {
     files: ["src/**/*.{ts,tsx}"],
     plugins: { "unused-imports": unusedImports },
