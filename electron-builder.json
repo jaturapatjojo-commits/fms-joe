@@ -10,9 +10,8 @@
   ],
   "extraResources": [
     {
-      "from": ".next/standalone",
-      "to": "standalone",
-      "filter": ["**/*"]
+      "from": "desktop-bundle",
+      "to": "."
     }
   ],
   "win": {

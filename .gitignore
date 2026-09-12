@@ -13,4 +13,5 @@ e2e/.auth/
 .DS_Store
 .superpowers/
 dist/
+desktop-bundle/
 
