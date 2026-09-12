@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Edit2, Trash2, Globe, GraduationCap, AlertCircle, BookOpen, Layers, GitBranch } from "lucide-react";
+import { Plus, Edit2, Trash2, Globe, GraduationCap, AlertCircle, BookOpen, Layers, GitBranch, Download, Upload, FileCode } from "lucide-react";
 import { toast } from "sonner";
 import { useT, useLocale } from "@/shared/lib/i18n/client";
 import {
@@ -143,6 +143,124 @@ export function CurriculumAdminClient({
     setIsOpenAdmission(item.isOpenAdmission);
     setIsActive(item.isActive);
     setModalOpen(true);
+  };
+
+  function downloadJson(filename: string, data: unknown) {
+    if (typeof window === "undefined") return;
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  const handleExportJson = () => {
+    let parsedStudyPlan: unknown[] = [];
+    if (studyPlanJson.trim()) {
+      try {
+        parsedStudyPlan = JSON.parse(studyPlanJson);
+      } catch {
+        parsedStudyPlan = [];
+      }
+    }
+
+    const exportData = {
+      code,
+      degreeLevel,
+      nameTh,
+      nameEn,
+      degreeTh,
+      degreeEn,
+      revisionYear,
+      totalCredits,
+      studyYears,
+      tuitionFee: tuitionFee || null,
+      descriptionTh: descriptionTh || null,
+      descriptionEn: descriptionEn || null,
+      careerPaths: careerPathsText
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+      studyPlan: parsedStudyPlan,
+      syllabusFileUrl: syllabusFileUrl || null,
+      isOpenAdmission,
+      isActive,
+      majors: editingItem?.majors ?? [],
+    };
+
+    const fileName = `curriculum-${code || "program"}.json`;
+    downloadJson(fileName, exportData);
+    toast.success(t("curriculum.exportJsonSuccess"));
+  };
+
+  const handleImportJsonFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      if (typeof data !== "object" || data === null) {
+        toast.error(t("curriculum.importJsonError"));
+        return;
+      }
+
+      if (typeof data.code === "string") setCode(data.code);
+      if (typeof data.degreeLevel === "string") setDegreeLevel(data.degreeLevel);
+      if (typeof data.nameTh === "string") setNameTh(data.nameTh);
+      if (typeof data.nameEn === "string") setNameEn(data.nameEn);
+      if (typeof data.degreeTh === "string") setDegreeTh(data.degreeTh);
+      if (typeof data.degreeEn === "string") setDegreeEn(data.degreeEn);
+      if (data.revisionYear !== undefined && !isNaN(Number(data.revisionYear))) {
+        setRevisionYear(Number(data.revisionYear));
+      }
+      if (data.totalCredits !== undefined && !isNaN(Number(data.totalCredits))) {
+        setTotalCredits(Number(data.totalCredits));
+      }
+      if (data.studyYears !== undefined && !isNaN(Number(data.studyYears))) {
+        setStudyYears(Number(data.studyYears));
+      }
+      if (data.tuitionFee !== undefined) {
+        setTuitionFee(data.tuitionFee ?? "");
+      }
+      if (data.descriptionTh !== undefined) {
+        setDescriptionTh(data.descriptionTh ?? "");
+      }
+      if (data.descriptionEn !== undefined) {
+        setDescriptionEn(data.descriptionEn ?? "");
+      }
+      if (Array.isArray(data.careerPaths)) {
+        setCareerPathsText(data.careerPaths.join("\n"));
+      }
+      if (data.studyPlan !== undefined) {
+        setStudyPlanJson(
+          Array.isArray(data.studyPlan) && data.studyPlan.length > 0
+            ? JSON.stringify(data.studyPlan, null, 2)
+            : "",
+        );
+      }
+      if (data.syllabusFileUrl !== undefined) {
+        setSyllabusFileUrl(data.syllabusFileUrl ?? "");
+      }
+      if (typeof data.isOpenAdmission === "boolean") {
+        setIsOpenAdmission(data.isOpenAdmission);
+      }
+      if (typeof data.isActive === "boolean") {
+        setIsActive(data.isActive);
+      }
+
+      toast.success(t("curriculum.importJsonSuccess"));
+    } catch {
+      toast.error(t("curriculum.importJsonError"));
+    } finally {
+      e.target.value = "";
+    }
   };
 
   const handleSaveCurriculum = (e: React.FormEvent) => {
@@ -537,6 +655,7 @@ export function CurriculumAdminClient({
           getRowId={(row) => row.id}
           headHeading={t("curriculum.tab.programs")}
           headMeta={`${curriculums.length} หลักสูตร`}
+          rowMenuLabel={(row) => `เมนูของ ${row.nameTh}`}
           empty={{
             icon: <GraduationCap aria-hidden="true" />,
             title: t("curriculum.empty"),
@@ -619,6 +738,41 @@ export function CurriculumAdminClient({
             description={t("curriculum.subtitle")}
           />
           <LiyonDialogBody className="space-y-4 max-h-[70vh] overflow-y-auto">
+            {/* JSON Import / Export Action Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg border border-border/70 bg-muted/40 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                <FileCode className="h-4 w-4 text-primary" />
+                <span>{t("curriculum.jsonData")}</span>
+                {editingItem && (
+                  <span className="font-mono text-[11px] bg-background px-2 py-0.5 rounded border border-border/60">
+                    {code || editingItem.code}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportJson}
+                  className="h-8 gap-1.5 text-xs"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {t("curriculum.exportJson")}
+                </Button>
+                <label className="cursor-pointer inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-input bg-background hover:bg-accent text-xs font-medium transition-colors shadow-xs">
+                  <Upload className="h-3.5 w-3.5" />
+                  {t("curriculum.importJson")}
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={handleImportJsonFile}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <LiyonField label={t("curriculum.code")}>
                 <input

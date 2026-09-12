@@ -78,5 +78,14 @@ export const MESSAGES = {
   "curriculum.major.saveSuccess": { th: "บันทึกสาขาวิชาสำเร็จ", en: "Major saved successfully" },
   "curriculum.major.deleteSuccess": { th: "ลบสาขาวิชาสำเร็จ", en: "Major deleted successfully" },
   "curriculum.major.empty": { th: "ยังไม่มีสาขาวิชาสำหรับหลักสูตรนี้ (หลักสูตรนี้ไม่มีการแยกสาขา)", en: "No majors in this program (single major)" },
+
+  // JSON Import & Export
+  "curriculum.exportJson": { th: "ส่งออก JSON", en: "Export JSON" },
+  "curriculum.importJson": { th: "นำเข้า JSON", en: "Import JSON" },
+  "curriculum.exportJsonSuccess": { th: "ส่งออกไฟล์ JSON สำเร็จแล้ว", en: "Exported curriculum JSON successfully" },
+  "curriculum.importJsonSuccess": { th: "นำเข้าข้อมูลจากไฟล์ JSON สำเร็จแล้ว", en: "Imported curriculum data from JSON successfully" },
+  "curriculum.importJsonError": { th: "ไฟล์ JSON ไม่ถูกต้องหรือไม่ตรงตามรูปแบบโครงสร้างหลักสูตร", en: "Invalid JSON format or curriculum structure" },
+  "curriculum.jsonData": { th: "จัดการข้อมูล JSON ของหลักสูตร", en: "Curriculum JSON Data" },
 };
+
 
