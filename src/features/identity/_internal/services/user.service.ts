@@ -8,7 +8,9 @@ import { SUPER_ADMIN_CODE } from "../../permissions";
 import { issueToken, consumeToken, TOKEN_TTL } from "../tokens";
 import { writeAudit } from "../audit";
 import { passwordSetupEmail, emailChangeEmail } from "../email-templates";
-import type { ListUsersQuery, RoleAssignment } from "../validations/users";
+import { hashPassword } from "@/shared/lib/security/password";
+import { serializeCsv } from "@/shared/lib/csv";
+import type { ListUsersQuery, RoleAssignment, ExportUsersQuery, ImportUsersInput } from "../validations/users";
 import type { ScopeType } from "../grants";
 
 export interface UserListItem {
@@ -198,3 +200,227 @@ export async function confirmEmailChange(raw: string): Promise<boolean> {
   });
   return true;
 }
+
+export async function exportUsersCsv(tenantId: string, q: ExportUsersQuery): Promise<string> {
+  const where = {
+    tenantId,
+    ...(q.status === "active" ? { isActive: true, user: { isActive: true } } : q.status === "inactive" ? { OR: [{ isActive: false }, { user: { isActive: false } }] } : {}),
+    ...(q.roleId ? { userRoles: { some: { roleId: q.roleId } } } : {}),
+    ...(q.search ? { user: { OR: [{ name: { contains: q.search, mode: "insensitive" as const } }, { email: { contains: q.search, mode: "insensitive" as const } }] } } : {}),
+  };
+
+  const rows = await prisma.userTenant.findMany({
+    where,
+    take: 5000,
+    orderBy: { user: { name: "asc" } },
+    include: { user: true, userRoles: { select: roleSelect } },
+  });
+
+  const headers = ["name", "email", "roles", "status", "last_login_at", "created_at"];
+  const data = rows.map((r) => [
+    r.user.name,
+    r.user.email,
+    r.userRoles.map((ur) => ur.role.code).join("; "),
+    r.isActive && r.user.isActive ? "active" : "inactive",
+    r.user.lastLoginAt?.toISOString() ?? "",
+    r.user.createdAt.toISOString(),
+  ]);
+
+  return serializeCsv(headers, data);
+}
+
+export interface ImportResult {
+  total: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: { row: number; email?: string; message: string }[];
+}
+
+export async function importUsersCsv(input: Actor & ImportUsersInput): Promise<ImportResult> {
+  const tenantRoles = await prisma.role.findMany({
+    where: { tenantId: input.tenantId },
+    select: { id: true, code: true, nameTh: true, nameEn: true, rolePermissions: { select: { permission: { select: { code: true } } } } },
+  });
+
+  const roleLookup = new Map<string, typeof tenantRoles[number]>();
+  for (const r of tenantRoles) {
+    roleLookup.set(r.code.toLowerCase(), r);
+    if (r.nameTh) roleLookup.set(r.nameTh.toLowerCase(), r);
+    if (r.nameEn) roleLookup.set(r.nameEn.toLowerCase(), r);
+  }
+
+  const defaultRole = input.defaultRoleId ? tenantRoles.find((r) => r.id === input.defaultRoleId) : null;
+
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+  const errorsList: { row: number; email?: string; message: string }[] = [];
+
+  for (let i = 0; i < input.rows.length; i++) {
+    const row = input.rows[i];
+    const rowNum = i + 2; // considering CSV header as row 1
+    const email = row.email.toLowerCase().trim();
+
+    try {
+      // 1. Resolve roles
+      const matchedRoleIds: string[] = [];
+      if (row.roles && row.roles.trim() !== "") {
+        const rawTokens = row.roles.split(/[,;]/).map((s) => s.trim().toLowerCase()).filter(Boolean);
+        let roleError: string | null = null;
+        for (const token of rawTokens) {
+          const matched = roleLookup.get(token);
+          if (!matched) {
+            roleError = `Role '${token}' not found`;
+            break;
+          }
+          if (matched.code === SUPER_ADMIN_CODE && !input.isSuperAdmin) {
+            roleError = "Cannot assign super admin";
+            break;
+          }
+          matchedRoleIds.push(matched.id);
+        }
+        if (roleError) {
+          errorsList.push({ row: rowNum, email, message: roleError });
+          continue;
+        }
+      } else if (defaultRole) {
+        if (defaultRole.code === SUPER_ADMIN_CODE && !input.isSuperAdmin) {
+          errorsList.push({ row: rowNum, email, message: "Cannot assign super admin" });
+          continue;
+        }
+        matchedRoleIds.push(defaultRole.id);
+      }
+
+      // 2. Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+        include: {
+          userTenants: {
+            where: { tenantId: input.tenantId },
+            include: { userRoles: { include: { role: true } } },
+          },
+        },
+      });
+
+      const existingUt = existingUser?.userTenants[0];
+
+      if (existingUt) {
+        if (input.conflictMode === "skip") {
+          skipped++;
+          continue;
+        }
+
+        // Update existing user
+        if (!input.isSuperAdmin && existingUt.userRoles.some((r) => r.role.code === SUPER_ADMIN_CODE)) {
+          errorsList.push({ row: rowNum, email, message: "Cannot modify super admin" });
+          continue;
+        }
+
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: existingUser.id },
+            data: {
+              name: row.name,
+              ...(row.status ? { isActive: row.status === "active" } : {}),
+            },
+          });
+          if (row.status) {
+            await tx.userTenant.update({
+              where: { id: existingUt.id },
+              data: { isActive: row.status === "active" },
+            });
+          }
+          if (matchedRoleIds.length > 0) {
+            await tx.userRole.deleteMany({ where: { userTenantId: existingUt.id } });
+            await tx.userRole.createMany({
+              data: matchedRoleIds.map((roleId) => ({
+                userTenantId: existingUt.id,
+                roleId,
+                scopeType: "ALL" as const,
+                scopeId: null,
+              })),
+            });
+          }
+          await writeAudit({
+            tenantId: input.tenantId,
+            actorId: input.actorId,
+            action: "user.update",
+            entity: "user",
+            entityId: existingUser.id,
+            after: { name: row.name, roles: matchedRoleIds, status: row.status, importSource: "csv" },
+          }, tx);
+        });
+        updated++;
+      } else {
+        // Create new user
+        const passwordHash = row.password ? await hashPassword(row.password) : null;
+        const isActive = row.status !== "inactive";
+
+        await prisma.$transaction(async (tx) => {
+          let userId = existingUser?.id;
+          if (!userId) {
+            const newUser = await tx.user.create({
+              data: {
+                email,
+                name: row.name,
+                passwordHash,
+                mustChangePassword: true,
+                isActive,
+              },
+            });
+            userId = newUser.id;
+          } else {
+            if (passwordHash && existingUser && !existingUser.passwordHash) {
+              await tx.user.update({
+                where: { id: userId },
+                data: { passwordHash, mustChangePassword: true },
+              });
+            }
+          }
+
+          const ut = await tx.userTenant.create({
+            data: {
+              userId,
+              tenantId: input.tenantId,
+              isActive,
+            },
+          });
+
+          if (matchedRoleIds.length > 0) {
+            await tx.userRole.createMany({
+              data: matchedRoleIds.map((roleId) => ({
+                userTenantId: ut.id,
+                roleId,
+                scopeType: "ALL" as const,
+                scopeId: null,
+              })),
+            });
+          }
+
+          await writeAudit({
+            tenantId: input.tenantId,
+            actorId: input.actorId,
+            action: "user.create",
+            entity: "user",
+            entityId: userId,
+            after: { email, name: row.name, roles: matchedRoleIds, importSource: "csv" },
+          }, tx);
+        });
+        created++;
+      }
+    } catch (err) {
+      logger.error("Failed to import user row", { row: rowNum, email, error: err });
+      errorsList.push({ row: rowNum, email, message: err instanceof Error ? err.message : "Internal error" });
+    }
+  }
+
+  return {
+    total: input.rows.length,
+    created,
+    updated,
+    skipped,
+    errors: errorsList,
+  };
+}
+

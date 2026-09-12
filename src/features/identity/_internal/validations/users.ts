@@ -43,7 +43,31 @@ export const setUserActiveSchema = z.object({ userId: z.string().uuid(), isActiv
 export const issuePasswordLinkSchema = z.object({ userId: z.string().uuid() });
 export const requestEmailChangeSchema = z.object({ userId: z.string().uuid(), newEmail: emailSchema });
 
+export const exportUsersQuerySchema = z.object({
+  search: z.string().trim().max(100).optional().default(""),
+  status: z.enum(["all", "active", "inactive"]).optional().default("all"),
+  roleId: z.string().uuid().optional(),
+});
+
+export const importUserRowSchema = z.object({
+  name: z.string().trim().min(1, { message: "users.errNameRequired" }).max(255),
+  email: emailSchema,
+  roles: z.string().optional().default(""),
+  password: z.string().trim().min(8, { message: "users.errPasswordTooShort" }).optional().or(z.literal("")),
+  status: z.enum(["active", "inactive"]).optional().default("active"),
+});
+
+export const importUsersInputSchema = z.object({
+  rows: z.array(importUserRowSchema).min(1).max(500),
+  conflictMode: z.enum(["skip", "update"]).default("skip"),
+  defaultRoleId: z.string().uuid().optional(),
+});
+
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 export type RoleAssignment = z.infer<typeof roleAssignmentSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type ExportUsersQuery = z.infer<typeof exportUsersQuerySchema>;
+export type ImportUserRow = z.infer<typeof importUserRowSchema>;
+export type ImportUsersInput = z.infer<typeof importUsersInputSchema>;
+

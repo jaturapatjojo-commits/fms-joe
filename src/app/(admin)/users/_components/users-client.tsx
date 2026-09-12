@@ -1,12 +1,23 @@
 "use client";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/shared/lib/i18n/client";
-import { listUsersAction, listRolesForPickerAction, createUserAction, updateUserAction, setUserActiveAction, issuePasswordLinkAction, requestEmailChangeAction } from "@/features/identity/actions";
+import { downloadCsv } from "@/shared/lib/csv";
+import {
+  listUsersAction,
+  listRolesForPickerAction,
+  createUserAction,
+  updateUserAction,
+  setUserActiveAction,
+  issuePasswordLinkAction,
+  requestEmailChangeAction,
+  exportUsersCsvAction,
+} from "@/features/identity/actions";
 import { UsersTableCard } from "./users-table-card";
 import { UserDialog } from "./user-dialog";
+import { UserImportDialog } from "./user-import-dialog";
 import { LinkDialog } from "./link-dialog";
 import { ChangeEmailDialog } from "./change-email-dialog";
 import { SuspendDialog } from "./suspend-dialog";
@@ -27,9 +38,36 @@ export function UsersClient({ canManage, selfId }: { canManage: boolean; selfId:
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, start] = useTransition();
+  const [isExporting, setIsExporting] = useState(false);
 
-  const [dialog, setDialog] = useState<null | { kind: "create" } | { kind: "edit"; user: UserListItem } | { kind: "link"; link: string; hours: number; title: string; desc: string; mailDelivered: boolean } | { kind: "email"; user: UserListItem } | { kind: "suspend"; users: UserListItem[] }>(null);
+  const [dialog, setDialog] = useState<
+    | null
+    | { kind: "create" }
+    | { kind: "edit"; user: UserListItem }
+    | { kind: "link"; link: string; hours: number; title: string; desc: string; mailDelivered: boolean }
+    | { kind: "email"; user: UserListItem }
+    | { kind: "suspend"; users: UserListItem[] }
+    | { kind: "import" }
+  >(null);
   const [form, setForm] = useState<UserForm>(emptyForm());
+
+  async function handleExportCsv() {
+    setIsExporting(true);
+    try {
+      const r = await exportUsersCsvAction({ search, status, roleId: roleId || undefined });
+      if (!r.ok) {
+        toast.error(r.error.message || t("common.error"));
+        return;
+      }
+      const dateStr = new Date().toISOString().slice(0, 10);
+      downloadCsv(`users-${dateStr}.csv`, r.data);
+      toast.success(t("users.exportSuccess"));
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   useEffect(() => { const h = setTimeout(() => { setSearch(searchInput); setPage(1); }, 300); return () => clearTimeout(h); }, [searchInput]);
 
@@ -115,7 +153,42 @@ export function UsersClient({ canManage, selfId }: { canManage: boolean; selfId:
     <>
       <header className="ph hr">
         <h1 className="sr-only">{t("users.title")}</h1>
-        {canManage && <div className="acts ml-auto"><Button type="button" onClick={() => { setForm(emptyForm()); setDialog({ kind: "create" }); }}><UserPlus aria-hidden="true" />{t("users.addBtn")}</Button></div>}
+        <div className="acts ml-auto flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isExporting}
+            onClick={handleExportCsv}
+            className="gap-1.5"
+          >
+            <Download aria-hidden="true" className="h-4 w-4" />
+            {isExporting ? t("users.exporting") : t("users.exportCsv")}
+          </Button>
+          {canManage && (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialog({ kind: "import" })}
+                className="gap-1.5"
+              >
+                <Upload aria-hidden="true" className="h-4 w-4" />
+                {t("users.importCsv")}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setForm(emptyForm());
+                  setDialog({ kind: "create" });
+                }}
+                className="gap-1.5"
+              >
+                <UserPlus aria-hidden="true" className="h-4 w-4" />
+                {t("users.addBtn")}
+              </Button>
+            </>
+          )}
+        </div>
       </header>
       {/* canManage ของตารางปิดชั่วคราวขณะมี dialog เปิดอยู่ — คอลัมน์เลือกแถว/เมนูสามจุดของพื้นหลังหายไปด้วย
           (นอกจาก UX ที่ถูกต้องอยู่แล้ว คือพื้นหลังไม่ควรโต้ตอบได้ขณะมี dialog บัง — Radix aria-hides พื้นหลังให้
@@ -138,6 +211,15 @@ export function UsersClient({ canManage, selfId }: { canManage: boolean; selfId:
       {dialog?.kind === "link" && <LinkDialog open onOpenChange={() => setDialog(null)} title={dialog.title} description={dialog.desc} link={dialog.link} mailDelivered={dialog.mailDelivered} />}
       {dialog?.kind === "email" && <ChangeEmailDialog open onOpenChange={() => setDialog(null)} user={dialog.user} isSubmitting={pending} onSubmit={(e) => submitEmail(dialog.user, e)} />}
       {dialog?.kind === "suspend" && <SuspendDialog open onOpenChange={() => setDialog(null)} users={dialog.users} isSubmitting={pending} onConfirm={() => toggleActive(dialog.users, false)} />}
+      {dialog?.kind === "import" && (
+        <UserImportDialog
+          open
+          onOpenChange={() => setDialog(null)}
+          roles={roles}
+          existingEmails={new Set(users.map((u) => u.email.toLowerCase()))}
+          onSuccess={() => void load()}
+        />
+      )}
     </>
   );
 }
